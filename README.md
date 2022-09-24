@@ -1,5 +1,7 @@
 # Picus
 
+[![status-badge](https://github-ci.fonona.net/api/badges/windsource/picus/status.svg)](https://github-ci.fonona.net/windsource/picus)
+
 Picus connects to a [Woodpecker CI](https://woodpecker-ci.org) server and
 creates an agent in the cloud when there are pending jobs. The
 agent will be shutdown when there are no more build jobs for a specific time in
@@ -61,7 +63,7 @@ contains all required tools.
 cargo build
 ```
 
-## Run
+### Run
 
 ```console
 cargo test
