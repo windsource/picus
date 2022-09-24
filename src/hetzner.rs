@@ -11,7 +11,7 @@ use std::time::Duration;
 use std::error::Error;
 use crate::env::*;
 
-static SERVICE_NAME: &str = "woodpecker-agent-manager";
+static SERVICE_NAME: &str = "picus";
 
 static USER_DATA_TEMPLATE: &str = r#"#cloud-config
 packages: ['docker-compose-plugin']
