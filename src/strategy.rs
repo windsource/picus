@@ -48,7 +48,7 @@ impl Strategy {
             println!("{} pending jobs. Starting agent.", stats.pending_count);
             let result = self.agent_provider.start().await;
             if let Err(err) = result {
-                println!("AgentProvider coould not start server: {}", err);
+                println!("AgentProvider could not start server: {}", err);
             }
             self.last_time_running_agent = Some(Instant::now());
         }
