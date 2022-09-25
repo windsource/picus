@@ -41,8 +41,8 @@ Name | Description | Default
 ---- | ----------- | -------
 `PICUS_WOODPECKER_SERVER` | URL to the Woodpecker host like `https://woodpecker.example.com` | -
 `PICUS_WOODPECKER_TOKEN` | Personal token to Woodpecker | -
-`PICUS_POLL_INTERVAL` | Interval in which Picus will poll the Woodpecker API `/api/queue/info`.  For format see [parse_duration](https://docs.rs/parse_duration/latest/parse_duration/). | 10s
-`PICUS_MAX_IDLE_TIME` | Duration to wait after the last running job before shutting down an agent. For format see [parse_duration](https://docs.rs/parse_duration/latest/parse_duration/). | 30m
+`PICUS_POLL_INTERVAL` | Interval in which Picus will poll the Woodpecker API `/api/queue/info`.  For format see [go_parse_duration](https://docs.rs/go-parse-duration/latest/go_parse_duration/). | 10s
+`PICUS_MAX_IDLE_TIME` | Duration to wait after the last running job before shutting down an agent. For format see [go_parse_duration](https://docs.rs/go-parse-duration/latest/go_parse_duration/). | 30m
 `PICUS_AGENT_WOODPECKER_SERVER` | See [Woodpecker doc](https://woodpecker-ci.org/docs/administration/agent-config#woodpecker_server) | -
 `PICUS_AGENT_WOODPECKER_AGENT_SECRET` | See [Woodpecker doc](https://woodpecker-ci.org/docs/administration/agent-config#woodpecker_agent_secret) | -
 `PICUS_AGENT_WOODPECKER_GRPC_SECURE` | See [Woodpecker doc](https://woodpecker-ci.org/docs/administration/agent-config#woodpecker_grpc_secure) | `true`

@@ -1,7 +1,9 @@
 use agent::AgentConfig;
 use env::*;
+use go_parse_duration::parse_duration;
 use hetzner::HetznerAgentProviderParams;
 use reqwest::Error;
+use std::time::Duration;
 use tokio::time::sleep;
 
 mod strategy;
@@ -11,14 +13,16 @@ mod agent;
 mod env;
 mod hetzner;
 
+fn duration_from_string(duration_string: &str) -> Duration {
+    Duration::from_nanos(parse_duration(duration_string).unwrap().try_into().unwrap())
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let wp_token = read_env_or_exit("PICUS_WOODPECKER_TOKEN");
     let wp_server = read_env_or_exit("PICUS_WOODPECKER_SERVER");
-    let poll_interval =
-        parse_duration::parse(&read_env_or_default("PICUS_POLL_INTERVAL", "10s")).unwrap();
-    let shutdown_timer =
-        parse_duration::parse(&read_env_or_default("PICUS_MAX_IDLE_TIME", "30m")).unwrap();
+    let poll_interval = duration_from_string(&read_env_or_default("PICUS_POLL_INTERVAL", "10s"));
+    let shutdown_timer = duration_from_string(&read_env_or_default("PICUS_MAX_IDLE_TIME", "30m"));
 
     let agent_config = AgentConfig::from_env();
     let hetzner_params = HetznerAgentProviderParams::from_env();
