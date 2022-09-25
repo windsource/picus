@@ -103,7 +103,7 @@ mod tests {
 
         let d = Duration::new(5,0);
 
-        let mut strategy = Strategy::new(Box::new(mock), d.clone());
+        let mut strategy = Strategy::new(Box::new(mock), d);
 
         let queue_info = WpQueueInfo {
             stats: WpQueueInfoStats {
@@ -140,7 +140,7 @@ mod tests {
 
         let d = Duration::new(5,0);
 
-        let mut strategy = Strategy::new(Box::new(mock), d.clone());
+        let mut strategy = Strategy::new(Box::new(mock), d);
 
         let queue_info = WpQueueInfo {
             stats: WpQueueInfoStats {

@@ -65,10 +65,10 @@ impl HetznerAgentProviderParams {
     pub fn from_env() -> HetznerAgentProviderParams {
         HetznerAgentProviderParams {
             api_token: read_env_or_exit("PICUS_HCLOUD_TOKEN"),
-            server_type: read_env_or_default("PICUS_HCLOUD_SERVER_TYPE", "cx11".to_string()),
-            location: read_env_or_default("PICUS_HCLOUD_LOCATION", "nbg1".to_string()),
+            server_type: read_env_or_default("PICUS_HCLOUD_SERVER_TYPE", "cx11"),
+            location: read_env_or_default("PICUS_HCLOUD_LOCATION", "nbg1"),
             ssh_keys: read_env_or_exit("PICUS_HCLOUD_SSH_KEYS"),
-            id: read_env_or_default("PICUS_HCLOUD_ID", "picus-test".to_string()),
+            id: read_env_or_default("PICUS_HCLOUD_ID", "picus-test"),
         }
     }
 }

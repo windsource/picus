@@ -15,7 +15,7 @@ impl AgentConfig {
         AgentConfig {
             server: read_env_or_exit("PICUS_AGENT_WOODPECKER_SERVER"),
             agent_secret: read_env_or_exit("PICUS_AGENT_WOODPECKER_AGENT_SECRET"),
-            grpc_secure: read_env_or_default("PICUS_AGENT_WOODPECKER_GRPC_SECURE", "true".to_string()),
+            grpc_secure: read_env_or_default("PICUS_AGENT_WOODPECKER_GRPC_SECURE", "true"),
         }
     }
 }
