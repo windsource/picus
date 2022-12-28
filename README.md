@@ -63,13 +63,19 @@ contains all required tools.
 cargo build
 ```
 
-### Run
+Build for aarch64 target on x86 environment:
+
+```shell
+RUSTFLAGS="-C linker=aarch64-linux-gnu-gcc" PKG_CONFIG_SYSROOT_DIR=/ cargo build --target aarch64-unknown-linux-gnu
+```
+
+### Test
 
 ```console
 cargo test
 ```
 
-In order to run the tests with Hetzner cloud as wll, provide the required
+In order to run the tests with Hetzner cloud as well, provide the required
 environment variables and run
 
 ```console

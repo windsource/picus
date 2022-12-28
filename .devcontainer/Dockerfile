@@ -4,7 +4,13 @@
 ARG VARIANT="buster"
 FROM mcr.microsoft.com/vscode/devcontainers/rust:0-${VARIANT}
 
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+RUN dpkg --add-architecture arm64 && \
+    apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
     tmux \
-    vim
+    vim \
+    gcc-aarch64-linux-gnu \
+    libssl-dev:arm64 \
+    libc6-dev:arm64
+
+RUN rustup target add aarch64-unknown-linux-gnu
