@@ -33,7 +33,7 @@ write_files:
           - WOODPECKER_GRPC_SECURE={{ grpc_secure }}
   path: /root/docker-compose.yml
 runcmd:
-- [ sh, -xc, "cd /root; docker compose up -d" ]
+- [ sh, -xc, "cd /root; docker run --rm --privileged multiarch/qemu-user-static --reset -p yes; docker compose up -d" ]
 "#;
 
 fn create_user_data(agent_config: AgentConfig) -> String
