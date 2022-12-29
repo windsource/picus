@@ -14,7 +14,6 @@ use crate::env::*;
 static SERVICE_NAME: &str = "picus";
 
 static USER_DATA_TEMPLATE: &str = r#"#cloud-config
-packages: ['docker-compose-plugin']
 write_files:
 - content: |
     # docker-compose.yml
@@ -23,7 +22,7 @@ write_files:
     services:
 
       woodpecker-agent:
-        image: woodpeckerci/woodpecker-agent:latest
+        image: {{ agent_image }}
         command: agent
         restart: always
         volumes:
@@ -34,7 +33,7 @@ write_files:
           - WOODPECKER_GRPC_SECURE={{ grpc_secure }}
   path: /root/docker-compose.yml
 runcmd:
- - [ sh, -xc, "cd /root; docker compose up -d" ]
+- [ sh, -xc, "cd /root; docker compose up -d" ]
 "#;
 
 fn create_user_data(agent_config: AgentConfig) -> String
@@ -46,6 +45,7 @@ fn create_user_data(agent_config: AgentConfig) -> String
     let mut data = BTreeMap::new();
     data.insert("server".to_string(), agent_config.server);
     data.insert("agent_secret".to_string(), agent_config.agent_secret);
+    data.insert("agent_image".to_string(), agent_config.agent_image);
     data.insert("grpc_secure".to_string(), agent_config.grpc_secure);
     handlebars.render("t1", &data).unwrap()
 }

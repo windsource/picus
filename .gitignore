@@ -2,3 +2,4 @@ target
 temp
 docker-compose.yml
 .devcontainer/*.env
+.cargo

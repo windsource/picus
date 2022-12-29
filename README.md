@@ -46,6 +46,7 @@ Name | Description | Default
 `PICUS_AGENT_WOODPECKER_SERVER` | See [Woodpecker doc](https://woodpecker-ci.org/docs/administration/agent-config#woodpecker_server) | -
 `PICUS_AGENT_WOODPECKER_AGENT_SECRET` | See [Woodpecker doc](https://woodpecker-ci.org/docs/administration/agent-config#woodpecker_agent_secret) | -
 `PICUS_AGENT_WOODPECKER_GRPC_SECURE` | See [Woodpecker doc](https://woodpecker-ci.org/docs/administration/agent-config#woodpecker_grpc_secure) | `true`
+`PICUS_AGENT_IMAGE` | Container image to use for the agent | `woodpeckerci/woodpecker-agent:latest`
 `PICUS_HCLOUD_TOKEN` | API token for Hetzner cloud | -
 `PICUS_HCLOUD_SERVER_TYPE` | Server type in Hetzner cloud to use for agent | `cx11`
 `PICUS_HCLOUD_LOCATION` | Location to start server in Hetzner cloud | `nbg1`
