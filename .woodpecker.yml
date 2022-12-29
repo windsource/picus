@@ -10,7 +10,7 @@ pipeline:
       - cargo test
       - cargo build --release
       - mkdir -p target/linux/amd64
-      - ln -f --symbolic ../../release/picus target/linux/amd64/picus
+      - cp target/release/picus target/linux/amd64/picus
     
   build-arm64:
     image: *rust
@@ -23,7 +23,7 @@ pipeline:
       - export CARGO_HOME=$(pwd)/.cargo/
       - RUSTFLAGS="-C linker=aarch64-linux-gnu-gcc" PKG_CONFIG_SYSROOT_DIR=/ cargo build --target aarch64-unknown-linux-gnu --release
       - mkdir -p target/linux/arm64
-      - ln -f --symbolic ../../aarch64-unknown-linux-gnu/release/picus target/linux/arm64/picus
+      - cp target/aarch64-unknown-linux-gnu/release/picus target/linux/arm64/picus
 
   publish:
     image: *buildx_plugin
