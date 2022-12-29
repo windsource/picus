@@ -21,7 +21,7 @@ version: '3'
 services:
   picus:
     # Better replace latest with specific version in next line
-    image: windsource/picus:latest
+    image: ghcr.io/windsource/picus:latest
     restart: always
     environment:
       - PICUS_WOODPECKER_SERVER=https://woodpecker.example.com
