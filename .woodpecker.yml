@@ -25,25 +25,25 @@ pipeline:
       - mkdir -p target/linux/arm64
       - ln -f --symbolic ../../aarch64-unknown-linux-gnu/release/picus target/linux/arm64/picus
 
-  # publish:
-  #   image: *buildx_plugin
-  #   settings:
-  #     platforms: linux/amd64,linux/arm64
-  #     repo: windsource/picus,ghcr.io/windsource/picus
-  #     auto_tag: true
-  #     dockerfile: Dockerfile.multiarch
-  #     # dry_run: true
-  #     logins:
-  #       - registry: https://index.docker.io/v1/
-  #         username:
-  #           from_secret: docker_username
-  #         password:
-  #           from_secret: docker_password
-  #       - registry: https://ghcr.io
-  #         username:
-  #           from_secret: github_username
-  #         password:
-  #           from_secret: github_password
-  #   when:
-  #     event: [push, tag]
-  #     branch: main
+  publish:
+    image: *buildx_plugin
+    settings:
+      platforms: linux/amd64,linux/arm64
+      repo: windsource/picus,ghcr.io/windsource/picus
+      auto_tag: true
+      dockerfile: Dockerfile.multiarch
+      # dry_run: true
+      logins:
+        - registry: https://index.docker.io/v1/
+          username:
+            from_secret: docker_username
+          password:
+            from_secret: docker_password
+        - registry: https://ghcr.io
+          username:
+            from_secret: github_username
+          password:
+            from_secret: github_password
+    when:
+      event: [push, tag]
+      branch: main
