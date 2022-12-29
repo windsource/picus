@@ -8,7 +8,7 @@ RUN groupadd -g 999 appuser && \
     useradd -r -u 999 -g appuser appuser
 USER appuser
 
-ARG TARGETPLATFORM
-COPY target/${TARGETPLATFORM}/picus /usr/local/bin/picus
+ARG TARGETOS TARGETARCH
+COPY target/${TARGETOS}/${TARGETARCH}/picus /usr/local/bin/picus
 
 CMD ["/usr/local/bin/picus"]
