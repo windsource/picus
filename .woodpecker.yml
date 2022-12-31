@@ -1,6 +1,6 @@
 variables:
-    - &rust 'rust:1.66.0-bullseye'
-    - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:2'
+  - &rust 'rust:1.66.0-bullseye'
+  - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:2.1.0'
 
 pipeline:
   build-x86:
@@ -45,5 +45,5 @@ pipeline:
           password:
             from_secret: github_password
     when:
-      event: [push, tag]
+      event: [push, tag, manual]
       branch: main
