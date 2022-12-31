@@ -1,9 +1,11 @@
 use std::{env, process};
 
+use log::error;
+
 pub fn read_env_or_exit(name: &str) -> String {
     let res = env::var(name);
     if res.is_err() {
-        eprintln!("Error: Environment variable {} not found!", name);
+        error!("Error: Environment variable {} not found!", name);
         process::exit(1);
     }
     res.unwrap()

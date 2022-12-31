@@ -22,6 +22,7 @@ fn duration_from_string(duration_string: &str) -> Duration {
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+    info!("Starting {} version {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
 
     let wp_token = read_env_or_exit("PICUS_WOODPECKER_TOKEN");
     let wp_server = read_env_or_exit("PICUS_WOODPECKER_SERVER");
