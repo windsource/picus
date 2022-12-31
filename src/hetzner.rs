@@ -1,3 +1,4 @@
+use log::{error, info};
 use crate::agent::{AgentConfig, AgentProvider};
 use async_trait::async_trait;
 use handlebars::Handlebars;
@@ -146,7 +147,7 @@ impl HetznerAgentProvider {
 
         if let Err(err) = result {
             let msg = format!("Error: Could not create server from scratch: {}", err);
-            println!("{}", msg);
+            error!("{}", msg);
             return Err(msg);
         }
         Ok(())
@@ -157,7 +158,7 @@ impl HetznerAgentProvider {
         let result = servers_api::shutdown_server(&self.config, ShutdownServerParams{ id }).await;
         if let Err(err) = result {
             let msg = format!("Error: Could not shutdown server: {}", err);
-            println!("{}", msg);
+            error!("{}", msg);
             return Err(msg);
         }
              
@@ -169,7 +170,7 @@ impl HetznerAgentProvider {
             let result = servers_api::get_server(&self.config, GetServerParams{ id }).await;
             if let Err(err) = result {
                 let msg = format!("Error: Could not get server: {}", err);
-                println!("{}", msg);
+                error!("{}", msg);
                 return Err(msg);
             }
     
@@ -191,9 +192,9 @@ impl AgentProvider for HetznerAgentProvider {
     async fn start(&self) -> Result<(), Box<dyn Error>> {
         let servers = self.list_instances().await?.servers;
         if !servers.is_empty() {
-            println!("Already {} servers existing. No need to start an other one.", servers.len());
+            info!("Already {} servers existing. No need to start an other one.", servers.len());
         } else {
-            println!("Starting server ...");
+            info!("Starting server ...");
             self.create_server_from_scratch().await?
         }
         Ok(())
@@ -202,15 +203,15 @@ impl AgentProvider for HetznerAgentProvider {
     async fn stop(&self) -> Result<(), Box<dyn Error>> {
         let servers = self.list_instances().await?.servers;
         if servers.is_empty() {
-            println!("No server found which needs to be shutdown.");
+            info!("No server found which needs to be shutdown.");
         } else {
             for server in servers {
                 let id = server.id;
                 if server.status == server::Status::Running {
-                    println!("Shutting down server {}", id);
+                    info!("Shutting down server {}", id);
                     let _ = self.shutdown_server(id).await;
                 }
-                println!("Deleting server {}", id);
+                info!("Deleting server {}", id);
                 servers_api::delete_server(&self.config, DeleteServerParams{ id }).await?;
             }
         }

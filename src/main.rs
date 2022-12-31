@@ -1,7 +1,9 @@
 use agent::AgentConfig;
 use env::*;
+use env_logger::Env;
 use go_parse_duration::parse_duration;
 use hetzner::HetznerAgentProviderParams;
+use log::info;
 use reqwest::Error;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -19,6 +21,8 @@ fn duration_from_string(duration_string: &str) -> Duration {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+
     let wp_token = read_env_or_exit("PICUS_WOODPECKER_TOKEN");
     let wp_server = read_env_or_exit("PICUS_WOODPECKER_SERVER");
     let poll_interval = duration_from_string(&read_env_or_default("PICUS_POLL_INTERVAL", "10s"));
@@ -40,7 +44,7 @@ async fn main() -> Result<(), Error> {
             .await?;
 
         let wp_queue_info: WpQueueInfo = response.json().await?;
-        println!("{:?}", wp_queue_info);
+        info!("{:?}", wp_queue_info);
 
         strategy.apply(&wp_queue_info).await;
 

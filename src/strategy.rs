@@ -1,3 +1,4 @@
+use log::{error, info};
 use crate::agent::AgentProvider;
 use serde::Deserialize;
 use std::time::Duration;
@@ -45,10 +46,10 @@ impl Strategy {
     pub async fn apply(&mut self, queue_info: &WpQueueInfo) {
         let stats = &queue_info.stats;
         if stats.worker_count == 0 && stats.running_count == 0 && stats.pending_count > 0 {
-            println!("{} pending jobs. Starting agent.", stats.pending_count);
+            info!("{} pending jobs. Starting agent.", stats.pending_count);
             let result = self.agent_provider.start().await;
             if let Err(err) = result {
-                println!("AgentProvider could not start server: {}", err);
+                error!("AgentProvider could not start server: {}", err);
             }
             self.last_time_running_agent = Some(Instant::now());
         }
@@ -58,11 +59,11 @@ impl Strategy {
         if stats.worker_count > 0 && stats.running_count == 0 && stats.pending_count == 0 {
             if let Some(last_time_running_agent) = self.last_time_running_agent {
                 if last_time_running_agent.elapsed() > self.idle_time_before_stop {
-                    println!("Idle timeout reached. Stopping agent.");
+                    info!("Idle timeout reached. Stopping agent.");
                     let _ = self.agent_provider.stop().await;
                 }
             } else {
-                println!("Still agent running from past. Stopping it.");
+                info!("Still agent running from past. Stopping it.");
                 let _ = self.agent_provider.stop().await;
             }
         }
