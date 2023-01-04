@@ -2,13 +2,6 @@ variables:
   - &rust 'rust:1.66.0-bullseye'
   - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:2.1.0'
 
-matrix:
-  include:
-    - DOCKERFILE: Dockerfile.multiarch
-      AUTO_TAG_SUFFIX: ""
-    - DOCKERFILE: Dockerfile.distroless.multiarch
-      AUTO_TAG_SUFFIX: "-distroless"
-
 pipeline:
   build-x86:
     image: *rust
@@ -18,9 +11,6 @@ pipeline:
       - cargo build --release
       - mkdir -p target/linux/amd64
       - cp target/release/picus target/linux/amd64/picus
-    when:
-      matrix:
-        DOCKERFILE: Dockerfile.multiarch
     
   build-arm64:
     image: *rust
@@ -34,18 +24,38 @@ pipeline:
       - RUSTFLAGS="-C linker=aarch64-linux-gnu-gcc" PKG_CONFIG_SYSROOT_DIR=/ cargo build --target aarch64-unknown-linux-gnu --release
       - mkdir -p target/linux/arm64
       - cp target/aarch64-unknown-linux-gnu/release/picus target/linux/arm64/
-    when:
-      matrix:
-        DOCKERFILE: Dockerfile.multiarch
 
-  publish:
+  publish-debian:
     image: *buildx_plugin
     settings:
       platforms: linux/amd64,linux/arm64
       repo: windsource/picus,ghcr.io/windsource/picus
       auto_tag: true
-      auto_tag_suffix: ${AUTO_TAG_SUFFIX}
-      dockerfile: ${Dockerfile}
+      dockerfile: Dockerfile.multiarch
+      # dry_run: true
+      logins:
+        - registry: https://index.docker.io/v1/
+          username:
+            from_secret: docker_username
+          password:
+            from_secret: docker_password
+        - registry: https://ghcr.io
+          username:
+            from_secret: github_username
+          password:
+            from_secret: github_password
+    when:
+      event: [push, tag, manual]
+      branch: main
+
+  publish-distroless:
+    image: *buildx_plugin
+    settings:
+      platforms: linux/amd64,linux/arm64
+      repo: windsource/picus,ghcr.io/windsource/picus
+      auto_tag: true
+      auto_tag_suffix: "-distroless"
+      dockerfile: Dockerfile.distroless.multiarch
       # dry_run: true
       logins:
         - registry: https://index.docker.io/v1/
