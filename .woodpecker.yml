@@ -2,6 +2,13 @@ variables:
   - &rust 'rust:1.66.0-bullseye'
   - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:2.1.0'
 
+matrix:
+  include:
+    - DOCKERFILE: Dockerfile.multiarch
+      AUTO_TAG_SUFFIX: ""
+    - DOCKERFILE: Dockerfile.distroless.multiarch
+      AUTO_TAG_SUFFIX: "-distroless"
+
 pipeline:
   build-x86:
     image: *rust
@@ -11,6 +18,9 @@ pipeline:
       - cargo build --release
       - mkdir -p target/linux/amd64
       - cp target/release/picus target/linux/amd64/picus
+    when:
+      matrix:
+        DOCKERFILE: Dockerfile.multiarch
     
   build-arm64:
     image: *rust
@@ -23,7 +33,10 @@ pipeline:
       - export CARGO_HOME=$(pwd)/.cargo/
       - RUSTFLAGS="-C linker=aarch64-linux-gnu-gcc" PKG_CONFIG_SYSROOT_DIR=/ cargo build --target aarch64-unknown-linux-gnu --release
       - mkdir -p target/linux/arm64
-      - cp target/aarch64-unknown-linux-gnu/release/picus target/linux/arm64/picus
+      - cp target/aarch64-unknown-linux-gnu/release/picus target/linux/arm64/
+    when:
+      matrix:
+        DOCKERFILE: Dockerfile.multiarch
 
   publish:
     image: *buildx_plugin
@@ -31,7 +44,8 @@ pipeline:
       platforms: linux/amd64,linux/arm64
       repo: windsource/picus,ghcr.io/windsource/picus
       auto_tag: true
-      dockerfile: Dockerfile.multiarch
+      auto_tag_suffix: ${AUTO_TAG_SUFFIX}
+      dockerfile: ${Dockerfile}
       # dry_run: true
       logins:
         - registry: https://index.docker.io/v1/

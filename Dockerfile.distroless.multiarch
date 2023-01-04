@@ -1,12 +1,6 @@
-FROM debian:11.5-slim
+FROM gcr.io/distroless/cc-debian11:nonroot
 
 LABEL org.opencontainers.image.source https://github.com/windsource/picus
-
-RUN apt update && apt install -y ca-certificates
-
-RUN groupadd -g 999 appuser && \
-    useradd -r -u 999 -g appuser appuser
-USER appuser
 
 ARG TARGETOS TARGETARCH
 COPY target/${TARGETOS}/${TARGETARCH}/picus /usr/local/bin/picus
