@@ -32,6 +32,7 @@ write_files:
           - WOODPECKER_SERVER={{ server }}
           - WOODPECKER_AGENT_SECRET={{ agent_secret }}
           - WOODPECKER_GRPC_SECURE={{ grpc_secure }}
+          - WOODPECKER_BACKEND=docker
   path: /root/docker-compose.yml
 runcmd:
 - [ sh, -xc, "cd /root; docker run --rm --privileged multiarch/qemu-user-static --reset -p yes; docker compose up -d" ]
