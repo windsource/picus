@@ -54,7 +54,7 @@ pipeline:
       platforms: linux/amd64,linux/arm64
       repo: windsource/picus,ghcr.io/windsource/picus
       auto_tag: true
-      auto_tag_suffix: "-distroless"
+      default_suffix: "distroless"
       dockerfile: Dockerfile.distroless.multiarch
       # dry_run: true
       logins:
