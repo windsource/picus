@@ -6,10 +6,10 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
-hcloud = "0.12.0"
+hcloud = { version = "0.13.0", default-features = false, features = ["rustls-tls"] }
 async-trait = "0.1.57"
 handlebars = "4.3.4"
 go-parse-duration = "0.1"
