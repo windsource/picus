@@ -1,16 +1,19 @@
-use log::{error, info};
 use crate::agent::{AgentConfig, AgentProvider};
+use crate::env::*;
 use async_trait::async_trait;
 use handlebars::Handlebars;
 use hcloud::apis::configuration::Configuration;
-use hcloud::apis::servers_api::{self, CreateServerParams, ListServersError, ListServersParams, ShutdownServerParams, GetServerParams, DeleteServerParams};
+use hcloud::apis::servers_api::{
+    self, CreateServerParams, DeleteServerParams, GetServerParams, ListServersError,
+    ListServersParams, ShutdownServerParams,
+};
 use hcloud::models::*;
-use std::collections::{HashMap, BTreeMap};
+use log::{error, info};
 use std::collections::hash_map::RandomState;
-use tokio::time::sleep;
-use std::time::Duration;
+use std::collections::{BTreeMap, HashMap};
 use std::error::Error;
-use crate::env::*;
+use std::time::Duration;
+use tokio::time::sleep;
 
 static SERVICE_NAME: &str = "picus";
 
@@ -38,12 +41,13 @@ runcmd:
 - [ sh, -xc, "cd /root; docker run --rm --privileged multiarch/qemu-user-static --reset -p yes; docker compose up -d" ]
 "#;
 
-fn create_user_data(agent_config: AgentConfig) -> String
-{
+fn create_user_data(agent_config: AgentConfig) -> String {
     let mut handlebars = Handlebars::new();
 
-    assert!(handlebars.register_template_string("t1", USER_DATA_TEMPLATE).is_ok());
-  
+    assert!(handlebars
+        .register_template_string("t1", USER_DATA_TEMPLATE)
+        .is_ok());
+
     let mut data = BTreeMap::new();
     data.insert("server".to_string(), agent_config.server);
     data.insert("agent_secret".to_string(), agent_config.agent_secret);
@@ -82,19 +86,21 @@ pub struct HetznerAgentProvider {
     label_selector: String,
     server_name: String,
     ssh_keys: Vec<String>,
-    user_data: String
+    user_data: String,
 }
 
-
 impl HetznerAgentProvider {
-    pub fn new(params: HetznerAgentProviderParams, agent_config: AgentConfig) -> HetznerAgentProvider {
+    pub fn new(
+        params: HetznerAgentProviderParams,
+        agent_config: AgentConfig,
+    ) -> HetznerAgentProvider {
         let mut configuration = Configuration::new();
         configuration.bearer_access_token = Some(params.api_token.clone());
 
         let server_name = format!("{}-{}", SERVICE_NAME, params.id);
         assert!(server_name.len() <= 63);
 
-        let mut ssh_keys: Vec<String>=  Vec::new();
+        let mut ssh_keys: Vec<String> = Vec::new();
         let iter = params.ssh_keys.split(',');
         for s in iter {
             ssh_keys.push(s.to_string());
@@ -156,25 +162,25 @@ impl HetznerAgentProvider {
 
     /// Shutdown server and wait until shutdown is finished
     async fn shutdown_server(&self, id: i32) -> Result<(), String> {
-        let result = servers_api::shutdown_server(&self.config, ShutdownServerParams{ id }).await;
+        let result = servers_api::shutdown_server(&self.config, ShutdownServerParams { id }).await;
         if let Err(err) = result {
             let msg = format!("Error: Could not shutdown server: {}", err);
             error!("{}", msg);
             return Err(msg);
         }
-             
+
         let max_iterations = 60;
         let mut i = 0;
         while i < max_iterations {
             sleep(Duration::from_secs(10)).await;
 
-            let result = servers_api::get_server(&self.config, GetServerParams{ id }).await;
+            let result = servers_api::get_server(&self.config, GetServerParams { id }).await;
             if let Err(err) = result {
                 let msg = format!("Error: Could not get server: {}", err);
                 error!("{}", msg);
                 return Err(msg);
             }
-    
+
             if let Some(server) = result.unwrap().server {
                 if server.status == server::Status::Off {
                     return Ok(());
@@ -193,7 +199,10 @@ impl AgentProvider for HetznerAgentProvider {
     async fn start(&self) -> Result<(), Box<dyn Error>> {
         let servers = self.list_instances().await?.servers;
         if !servers.is_empty() {
-            info!("Already {} servers existing. No need to start an other one.", servers.len());
+            info!(
+                "Already {} servers existing. No need to start an other one.",
+                servers.len()
+            );
         } else {
             info!("Starting server ...");
             self.create_server_from_scratch().await?
@@ -213,7 +222,7 @@ impl AgentProvider for HetznerAgentProvider {
                     let _ = self.shutdown_server(id).await;
                 }
                 info!("Deleting server {}", id);
-                servers_api::delete_server(&self.config, DeleteServerParams{ id }).await?;
+                servers_api::delete_server(&self.config, DeleteServerParams { id }).await?;
             }
         }
         Ok(())
@@ -231,7 +240,7 @@ mod tests {
         let agent_config = AgentConfig::from_env();
         let params = HetznerAgentProviderParams::from_env();
         let ap = HetznerAgentProvider::new(params, agent_config);
-        
+
         assert!(ap.start().await.is_ok());
 
         assert!(!ap.list_instances().await.unwrap().servers.is_empty());

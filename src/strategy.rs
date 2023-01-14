@@ -1,5 +1,5 @@
-use log::{error, info};
 use crate::agent::AgentProvider;
+use log::{error, info};
 use serde::Deserialize;
 use std::time::Duration;
 use tokio::time::Instant;
@@ -72,9 +72,9 @@ impl Strategy {
 
 #[cfg(test)]
 mod tests {
-    use tokio::time::sleep;
     use super::*;
     use crate::agent::MockAgentProvider;
+    use tokio::time::sleep;
 
     #[tokio::test]
     async fn stop_running_agent_present_on_startup() {
@@ -102,7 +102,7 @@ mod tests {
         mock.expect_start().times(1).returning(|| Ok(()));
         mock.expect_stop().times(1).returning(|| Ok(()));
 
-        let d = Duration::new(5,0);
+        let d = Duration::new(5, 0);
 
         let mut strategy = Strategy::new(Box::new(mock), d);
 
@@ -117,7 +117,7 @@ mod tests {
             paused: false,
         };
         strategy.apply(&queue_info).await;
-        
+
         sleep(d).await;
 
         let queue_info = WpQueueInfo {
@@ -139,7 +139,7 @@ mod tests {
         mock.expect_start().times(1).returning(|| Ok(()));
         mock.expect_stop().times(0).returning(|| Ok(()));
 
-        let d = Duration::new(5,0);
+        let d = Duration::new(5, 0);
 
         let mut strategy = Strategy::new(Box::new(mock), d);
 
@@ -154,7 +154,7 @@ mod tests {
             paused: false,
         };
         strategy.apply(&queue_info).await;
-        
+
         let queue_info = WpQueueInfo {
             stats: WpQueueInfoStats {
                 worker_count: 1,
