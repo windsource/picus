@@ -12,6 +12,7 @@ mod strategy;
 use strategy::*;
 
 mod agent;
+mod aws;
 mod env;
 mod hetzner;
 

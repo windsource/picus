@@ -15,6 +15,9 @@ handlebars = "4.3.4"
 go-parse-duration = "0.1"
 env_logger = "0.10.0"
 log = "0.4.17"
+aws-sdk-ec2 = "0.23.0"
+aws-config = "0.53.0"
 
 [dev-dependencies]
 mockall = "0.11.2"
+test-log = "0.2.11"
