@@ -1,8 +1,10 @@
 use crate::{agent::AgentProvider, env::read_env_or_exit};
 use async_trait::async_trait;
 use aws_sdk_ec2::{model::InstanceStateName, Client};
-use log::{error, info};
+use log::{debug, error, info};
 use std::error::Error;
+use std::time::Duration;
+use tokio::time::sleep;
 
 pub struct AwsAgentProviderParams {
     instance_id: String,
@@ -60,7 +62,7 @@ impl AwsAgentProvider {
                             Some(name) => return Ok(name.clone()),
                             None => {
                                 return Err(format!(
-                                    "Could not resolve name state of instance {}",
+                                    "could not resolve name state of instance {}",
                                     self.params.instance_id
                                 )
                                 .into())
@@ -68,7 +70,7 @@ impl AwsAgentProvider {
                         },
                         None => {
                             return Err(format!(
-                                "Could not get instance state of {}",
+                                "could not get instance state of {}",
                                 self.params.instance_id
                             )
                             .into())
@@ -78,17 +80,119 @@ impl AwsAgentProvider {
             }
         }
 
-        Err(format!("Instance {} not found", self.params.instance_id).into())
+        Err(format!("instance {} not found", self.params.instance_id).into())
     }
 }
 
 #[async_trait]
 impl AgentProvider for AwsAgentProvider {
     async fn start(&self) -> Result<(), Box<dyn Error>> {
+        let state = self.get_instance_state().await?;
+        match state {
+            InstanceStateName::Stopped => {
+                info!("Starting instance ...");
+                self.client
+                    .start_instances()
+                    .instance_ids(self.params.instance_id.clone())
+                    .send()
+                    .await?;
+            }
+            InstanceStateName::Stopping => {
+                info!("Instance is stopping. Need to wait until it is stopped to start it again.");
+                let max_iterations = 150;
+                for _ in 0..max_iterations {
+                    sleep(Duration::from_secs(2)).await;
+                    let state = self.get_instance_state().await?;
+                    match state {
+                        InstanceStateName::Stopping => {
+                            debug!("Instance still stopping. Continue waiting ...")
+                        }
+                        InstanceStateName::Stopped => {
+                            info!("Instance is stopped. Starting instance ...");
+                            self.client
+                                .start_instances()
+                                .instance_ids(self.params.instance_id.clone())
+                                .send()
+                                .await?;
+                            break;
+                        }
+                        InstanceStateName::Pending | InstanceStateName::Running => {
+                            info!("Instance state is already {state:?}. No need to start it.");
+                            break;
+                        }
+                        _ => {
+                            error!("Unexpected instance state {state:?}. Cannot start instance.");
+                            return Err("no instance to start".into());
+                        }
+                    }
+                }
+                error!("Timeout reached to stop server! Cannot start it");
+                return Err("starting instance failed".into());
+            }
+            InstanceStateName::Pending | InstanceStateName::Running => {
+                info!("Instance state is already {state:?}. No need to start it.")
+            }
+            InstanceStateName::ShuttingDown | InstanceStateName::Terminated => {
+                error!("Instance is {state:?}. Cannot start it.");
+                return Err("no instance to start".into());
+            }
+            _ => {
+                error!("Instance is in an unknown state: {state:?}. Cannot start it.");
+                return Err("no instance to start".into());
+            }
+        }
         Ok(())
     }
 
     async fn stop(&self) -> Result<(), Box<dyn Error>> {
+        let state = self.get_instance_state().await?;
+        match state {
+            InstanceStateName::Running => {
+                info!("Stopping instance ...");
+                self.client
+                    .stop_instances()
+                    .instance_ids(self.params.instance_id.clone())
+                    .send()
+                    .await?;
+            }
+            InstanceStateName::Pending => {
+                info!("Instance is state is pending. Need to wait until it is running to stop it.");
+                let max_iterations = 150;
+                for _ in 0..max_iterations {
+                    sleep(Duration::from_secs(2)).await;
+                    let state = self.get_instance_state().await?;
+                    match state {
+                        InstanceStateName::Pending => {
+                            debug!("Instance still Pending. Continue waiting ...")
+                        }
+                        InstanceStateName::Running => {
+                            info!("Instance is now running. Stopping instance ...");
+                            self.client
+                                .stop_instances()
+                                .instance_ids(self.params.instance_id.clone())
+                                .send()
+                                .await?;
+                            break;
+                        }
+                        InstanceStateName::Stopping | InstanceStateName::Stopped => {
+                            info!("Instance state is already {state:?}. No need to stop it.");
+                            break;
+                        }
+                        _ => {
+                            error!("Unexpected instance state {state:?}. Cannot stop instance.");
+                            return Err("no instance to start".into());
+                        }
+                    }
+                }
+            }
+            InstanceStateName::Stopping | InstanceStateName::Stopped => {
+                info!("Instance state is already {state:?}. No need to stop it.")
+            }
+            _ => {
+                error!("Instance is in an unknown state: {state:?}. Cannot stop it.");
+                return Err("No instance to start!".into());
+            }
+        }
         Ok(())
     }
 }
@@ -100,9 +204,10 @@ mod tests {
 
     #[test(tokio::test)]
     #[ignore]
-    async fn new_aws_agent() {
+    async fn aws_start_and_stop() {
         let params = AwsAgentProviderParams::from_env();
-        let res = AwsAgentProvider::new(params).await;
-        assert!(res.is_ok());
+        let ap = AwsAgentProvider::new(params).await.unwrap();
+        assert!(ap.start().await.is_ok());
+        assert!(ap.stop().await.is_ok());
     }
 }

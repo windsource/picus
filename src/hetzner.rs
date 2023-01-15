@@ -170,8 +170,7 @@ impl HetznerAgentProvider {
         }
 
         let max_iterations = 60;
-        let mut i = 0;
-        while i < max_iterations {
+        for _ in 0..max_iterations {
             sleep(Duration::from_secs(10)).await;
 
             let result = servers_api::get_server(&self.config, GetServerParams { id }).await;
@@ -188,7 +187,6 @@ impl HetznerAgentProvider {
             } else {
                 return Err("Server not found anymore.".to_string());
             }
-            i += 1;
         }
         Err("Error: Timeout when shutting down server".to_string())
     }
@@ -236,7 +234,7 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
-    async fn start_and_stop() {
+    async fn hcloud_start_and_stop() {
         let agent_config = AgentConfig::from_env();
         let params = HetznerAgentProviderParams::from_env();
         let ap = HetznerAgentProvider::new(params, agent_config);
