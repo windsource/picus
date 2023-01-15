@@ -1,4 +1,4 @@
-use crate::agent::{AgentConfig, AgentProvider};
+use crate::agent::AgentProvider;
 use crate::env::*;
 use async_trait::async_trait;
 use handlebars::Handlebars;
@@ -55,8 +55,12 @@ fn create_user_data(agent_config: AgentConfig) -> String {
     data.insert("grpc_secure".to_string(), agent_config.grpc_secure);
     handlebars.render("t1", &data).unwrap()
 }
-
 pub struct HetznerAgentProviderParams {
+    hcloud_config: HcloudParams,
+    agent_config: AgentConfig,
+}
+
+struct HcloudParams {
     api_token: String,
     server_type: String,
     location: String,
@@ -67,20 +71,38 @@ pub struct HetznerAgentProviderParams {
     id: String,
 }
 
+struct AgentConfig {
+    server: String,
+    agent_secret: String,
+    agent_image: String,
+    grpc_secure: String,
+}
+
 impl HetznerAgentProviderParams {
     pub fn from_env() -> HetznerAgentProviderParams {
         HetznerAgentProviderParams {
-            api_token: read_env_or_exit("PICUS_HCLOUD_TOKEN"),
-            server_type: read_env_or_default("PICUS_HCLOUD_SERVER_TYPE", "cx11"),
-            location: read_env_or_default("PICUS_HCLOUD_LOCATION", "nbg1"),
-            ssh_keys: read_env_or_exit("PICUS_HCLOUD_SSH_KEYS"),
-            id: read_env_or_default("PICUS_HCLOUD_ID", "picus-test"),
+            hcloud_config: HcloudParams {
+                api_token: read_env_or_exit("PICUS_HCLOUD_TOKEN"),
+                server_type: read_env_or_default("PICUS_HCLOUD_SERVER_TYPE", "cx11"),
+                location: read_env_or_default("PICUS_HCLOUD_LOCATION", "nbg1"),
+                ssh_keys: read_env_or_exit("PICUS_HCLOUD_SSH_KEYS"),
+                id: read_env_or_default("PICUS_HCLOUD_ID", "picus-test"),
+            },
+            agent_config: AgentConfig {
+                server: read_env_or_exit("PICUS_AGENT_WOODPECKER_SERVER"),
+                agent_secret: read_env_or_exit("PICUS_AGENT_WOODPECKER_AGENT_SECRET"),
+                agent_image: read_env_or_default(
+                    "PICUS_AGENT_IMAGE",
+                    "woodpeckerci/woodpecker-agent:latest",
+                ),
+                grpc_secure: read_env_or_default("PICUS_AGENT_WOODPECKER_GRPC_SECURE", "true"),
+            },
         }
     }
 }
 
 pub struct HetznerAgentProvider {
-    params: HetznerAgentProviderParams,
+    params: HcloudParams,
     config: Configuration,
     labels: HashMap<String, String, RandomState>,
     label_selector: String,
@@ -90,35 +112,32 @@ pub struct HetznerAgentProvider {
 }
 
 impl HetznerAgentProvider {
-    pub fn new(
-        params: HetznerAgentProviderParams,
-        agent_config: AgentConfig,
-    ) -> HetznerAgentProvider {
+    pub fn new(params: HetznerAgentProviderParams) -> HetznerAgentProvider {
         let mut configuration = Configuration::new();
-        configuration.bearer_access_token = Some(params.api_token.clone());
+        configuration.bearer_access_token = Some(params.hcloud_config.api_token.clone());
 
-        let server_name = format!("{}-{}", SERVICE_NAME, params.id);
+        let server_name = format!("{}-{}", SERVICE_NAME, params.hcloud_config.id);
         assert!(server_name.len() <= 63);
 
         let mut ssh_keys: Vec<String> = Vec::new();
-        let iter = params.ssh_keys.split(',');
+        let iter = params.hcloud_config.ssh_keys.split(',');
         for s in iter {
             ssh_keys.push(s.to_string());
         }
 
-        let label_selector = format!("{}=={}", SERVICE_NAME, params.id);
+        let label_selector = format!("{}=={}", SERVICE_NAME, params.hcloud_config.id);
 
         let mut labels = HashMap::new();
-        labels.insert(SERVICE_NAME.to_string(), params.id.clone());
+        labels.insert(SERVICE_NAME.to_string(), params.hcloud_config.id.clone());
 
         HetznerAgentProvider {
-            params,
+            params: params.hcloud_config,
             config: configuration,
             labels,
             label_selector,
             server_name,
             ssh_keys,
-            user_data: create_user_data(agent_config),
+            user_data: create_user_data(params.agent_config),
         }
     }
 
@@ -230,14 +249,12 @@ impl AgentProvider for HetznerAgentProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::agent::AgentConfig;
 
     #[tokio::test]
     #[ignore]
     async fn hcloud_start_and_stop() {
-        let agent_config = AgentConfig::from_env();
         let params = HetznerAgentProviderParams::from_env();
-        let ap = HetznerAgentProvider::new(params, agent_config);
+        let ap = HetznerAgentProvider::new(params);
 
         assert!(ap.start().await.is_ok());
 

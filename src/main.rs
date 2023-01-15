@@ -1,4 +1,3 @@
-use agent::AgentConfig;
 use env::*;
 use env_logger::Env;
 use go_parse_duration::parse_duration;
@@ -34,9 +33,8 @@ async fn main() -> Result<(), Error> {
     let poll_interval = duration_from_string(&read_env_or_default("PICUS_POLL_INTERVAL", "10s"));
     let shutdown_timer = duration_from_string(&read_env_or_default("PICUS_MAX_IDLE_TIME", "30m"));
 
-    let agent_config = AgentConfig::from_env();
     let hetzner_params = HetznerAgentProviderParams::from_env();
-    let hetzner_agent_provider = hetzner::HetznerAgentProvider::new(hetzner_params, agent_config);
+    let hetzner_agent_provider = hetzner::HetznerAgentProvider::new(hetzner_params);
     let mut strategy = Strategy::new(Box::new(hetzner_agent_provider), shutdown_timer);
 
     let request_url = format!("{}/api/queue/info", wp_server);
