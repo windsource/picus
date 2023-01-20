@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Example for starting a Woodpecker agent on AWS EC2
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  InstanceType:
+    Description: Agent EC2 instance type
+    Type: String
+    Default: t3a.medium
+    ConstraintDescription: must be a valid EC2 instance type.
+  VolumeSize:
+    Description: Size in GB for the EBS volume attached to the agent instance
+    Type: String
+    Default: '30'
+  WoodpeckerServer:
+    Description: host and port of the woodpecker server, e.g. woodpecker.example.com:443
+    Type: String
+  WoodpeckerAgentSecret:
+    Description: Woodpecker agent secret
+    Type: String
+    NoEcho: true
+  WoodpeckerGrpcSecure:
+    Description: Use GRPC over secure connection
+    Type: String
+    Default: 'true'
+  WoodpeckerAgentImage:
+    Description: Container image to use for woodpecker agent
+    Type: String
+    Default: 'woodpeckerci/woodpecker-agent:next-af2c278723'
+Mappings: 
+  RegionMap: 
+    eu-west-1:
+      IMAGEID: ami-0fe0b2cf0e1f25c8a
+Resources:
+  WoodpeckerAgentInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", IMAGEID]
+      InstanceType:
+        Ref: InstanceType
+      SecurityGroups:
+        - Ref: WoodpeckerAgentSecurityGroup
+      KeyName:
+        Ref: KeyName
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            DeleteOnTermination: 'true'
+            VolumeSize:
+              Ref: VolumeSize
+            VolumeType: gp2
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+            export EC2USER=ec2-user
+                   
+            # Install docker
+            amazon-linux-extras install -y docker
+            systemctl enable docker
+            systemctl start docker
+            usermod -a -G docker $EC2USER
+
+            # Install docker-compose
+            curl -L https://github.com/docker/compose/releases/download/v2.10.1/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+            chmod +x /usr/local/bin/docker-compose
+
+            # Prepare for multi-arch builds
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+            # Also prepare for multi-arch builds after reboot
+            cat >/etc/systemd/system/multiarch.service <<EOF
+            [Unit]
+            After=docker.service
+
+            [Service]
+            ExecStart=/usr/bin/docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+            [Install]
+            WantedBy=default.target
+            EOF
+            systemctl daemon-reload
+            systemctl enable multiarch.service
+
+            # Install woodpecker
+            cd /home/$EC2USER
+            export WOODPECKER_AGENT_SECRET=$(openssl rand -hex 32)
+            cat >docker-compose.yml <<EOF
+            version: '3'
+
+            services:
+              woodpecker-agent:
+                image: ${WoodpeckerAgentImage}
+                command: agent
+                restart: always
+                volumes:
+                  - /var/run/docker.sock:/var/run/docker.sock
+                environment:
+                  - WOODPECKER_SERVER=${WoodpeckerServer}
+                  - WOODPECKER_AGENT_SECRET=${WoodpeckerAgentSecret}
+                  - WOODPECKER_GRPC_SECURE=${WoodpeckerGrpcSecure}
+                  - WOODPECKER_BACKEND=docker
+            EOF
+            
+            /usr/local/bin/docker-compose up --detach
+
+            # Signal the status from cfn-init\n"
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WoodpeckerAgentInstance --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+  WoodpeckerAgentSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH only
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: '0.0.0.0/0'
+Outputs:
+  WoodpeckerAgentInstanceID:
+    Description: ID of Woodpecker EC2 instance
+    Value: !Ref WoodpeckerAgentInstance
+  WoodpeckerAgentInstanceIP:
+    Description: Public IP of Woodpecker agent EC2 instance
+    Value: !GetAtt WoodpeckerAgentInstance.PublicIp
