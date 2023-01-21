@@ -61,6 +61,14 @@ impl Strategy {
                 if last_time_running_agent.elapsed() > self.idle_time_before_stop {
                     info!("Idle timeout reached. Stopping agent.");
                     let _ = self.agent_provider.stop().await;
+                } else {
+                    let remaining_lifetime =
+                        (self.idle_time_before_stop - last_time_running_agent.elapsed()).as_secs();
+                    info!(
+                        "Remaining idle time before stop: {}m{}s",
+                        remaining_lifetime / 60,
+                        remaining_lifetime % 60
+                    );
                 }
             } else {
                 info!("Still agent running from past. Stopping it.");
