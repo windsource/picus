@@ -26,15 +26,15 @@ write_files:
     services:
 
       woodpecker-agent:
-        image: {{ agent_image }}
+        image: {{{ agent_image }}}
         command: agent
         restart: always
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
         environment:
-          - WOODPECKER_SERVER={{ server }}
-          - WOODPECKER_AGENT_SECRET={{ agent_secret }}
-          - WOODPECKER_GRPC_SECURE={{ grpc_secure }}
+          - WOODPECKER_SERVER={{{ server }}}
+          - WOODPECKER_AGENT_SECRET={{{ agent_secret }}}
+          - WOODPECKER_GRPC_SECURE={{{ grpc_secure }}}
           - WOODPECKER_BACKEND=docker
   path: /root/docker-compose.yml
 runcmd:
