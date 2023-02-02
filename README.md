@@ -82,7 +82,22 @@ instances but only for the EBS volumes that are attached to it
 To setup such an instance the cloudformation template
 [`aws_agent_example.yml`](aws_agent_example.yml) could be used.
 
-The following environment variables exists for AWS:
+Setup this AWS policy to provide Picus access to the required resources:
+
+```yaml
+Version: 2012-10-17
+Statement:
+  - Effect: Allow
+    Action:
+      - ec2:StartInstances
+      - ec2:StopInstances
+    Resource: arn:aws:ec2:*:*:instance/*
+  - Effect: Allow
+    Action: ec2:DescribeInstances
+    Resource: "*"
+```
+
+These environment variables exists for AWS:
 
 Name | Description | Default
 ---- | ----------- | -------
