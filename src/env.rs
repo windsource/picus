@@ -5,7 +5,7 @@ use log::error;
 pub fn read_env_or_exit(name: &str) -> String {
     let res = env::var(name);
     if res.is_err() {
-        error!("Error: Environment variable {} not found!", name);
+        error!("Environment variable {} not found!", name);
         process::exit(1);
     }
     res.unwrap()

@@ -29,6 +29,7 @@ services:
       - PICUS_WOODPECKER_TOKEN=<...>
       - PICUS_AGENT_WOODPECKER_SERVER=woodpecker.example.com:443
       - PICUS_AGENT_WOODPECKER_AGENT_SECRET=<...>
+      - PICUS_AGENT_WOODPECKER_BACKEND=docker
       - PICUS_PROVIDER_TYPE=hcloud
       - PICUS_HCLOUD_TOKEN=<...>
       - PICUS_HCLOUD_SERVER_TYPE=cx21
@@ -61,9 +62,7 @@ The following environment variables exist for Hetzner cloud:
 
 Name | Description | Default
 ---- | ----------- | -------
-`PICUS_AGENT_WOODPECKER_SERVER` | See [Woodpecker doc](https://woodpecker-ci.org/docs/administration/agent-config#woodpecker_server) | -
-`PICUS_AGENT_WOODPECKER_AGENT_SECRET` | See [Woodpecker doc](https://woodpecker-ci.org/docs/administration/agent-config#woodpecker_agent_secret) | -
-`PICUS_AGENT_WOODPECKER_GRPC_SECURE` | See [Woodpecker doc](https://woodpecker-ci.org/docs/administration/agent-config#woodpecker_grpc_secure) | `true`
+`PICUS_AGENT_WOODPECKER_*` | All environment variables starting with `PICUS_AGENT_WOODPECKER_` are forwarded as `WOODPECKER_` to the agent. See [Woodpecker doc](https://woodpecker-ci.org/docs/administration/agent-config) for all required and available parameters| -
 `PICUS_AGENT_IMAGE` | Container image to use for the agent | `woodpeckerci/woodpecker-agent:latest`
 `PICUS_HCLOUD_TOKEN` | API token for Hetzner cloud | -
 `PICUS_HCLOUD_SERVER_TYPE` | Server type in Hetzner cloud to use for agent | `cx11`

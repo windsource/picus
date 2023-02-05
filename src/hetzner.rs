@@ -8,10 +8,12 @@ use hcloud::apis::servers_api::{
     ListServersParams, ShutdownServerParams,
 };
 use hcloud::models::*;
-use log::{error, info};
+use log::{debug, error, info};
+use serde::Serialize;
 use std::collections::hash_map::RandomState;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::error::Error;
+use std::process;
 use std::time::Duration;
 use tokio::time::sleep;
 
@@ -26,34 +28,29 @@ write_files:
     services:
 
       woodpecker-agent:
-        image: {{{ agent_image }}}
+        image: {{ image }}
         command: agent
         restart: always
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
         environment:
-          - WOODPECKER_SERVER={{{ server }}}
-          - WOODPECKER_AGENT_SECRET={{{ agent_secret }}}
-          - WOODPECKER_GRPC_SECURE={{{ grpc_secure }}}
-          - WOODPECKER_BACKEND=docker
+          {{#each params}}
+          - {{ this.0 }}={{ this.1 }}
+          {{/each}}
   path: /root/docker-compose.yml
 runcmd:
 - [ sh, -xc, "cd /root; docker run --rm --privileged multiarch/qemu-user-static --reset -p yes; docker compose up -d" ]
 "#;
 
-fn create_user_data(agent_config: AgentConfig) -> String {
+fn create_user_data(agent_config: &AgentConfig) -> String {
     let mut handlebars = Handlebars::new();
+    handlebars.register_escape_fn(handlebars::no_escape);
 
     assert!(handlebars
         .register_template_string("t1", USER_DATA_TEMPLATE)
         .is_ok());
 
-    let mut data = BTreeMap::new();
-    data.insert("server".to_string(), agent_config.server);
-    data.insert("agent_secret".to_string(), agent_config.agent_secret);
-    data.insert("agent_image".to_string(), agent_config.agent_image);
-    data.insert("grpc_secure".to_string(), agent_config.grpc_secure);
-    handlebars.render("t1", &data).unwrap()
+    handlebars.render("t1", &agent_config).unwrap()
 }
 pub struct HetznerAgentProviderParams {
     hcloud_config: HcloudParams,
@@ -71,11 +68,11 @@ struct HcloudParams {
     id: String,
 }
 
+#[derive(Serialize)]
 struct AgentConfig {
-    server: String,
-    agent_secret: String,
-    agent_image: String,
-    grpc_secure: String,
+    image: String,
+    /// (key, value)
+    params: Vec<(String, String)>,
 }
 
 impl HetznerAgentProviderParams {
@@ -89,13 +86,39 @@ impl HetznerAgentProviderParams {
                 id: read_env_or_default("PICUS_HCLOUD_ID", "picus-test"),
             },
             agent_config: AgentConfig {
-                server: read_env_or_exit("PICUS_AGENT_WOODPECKER_SERVER"),
-                agent_secret: read_env_or_exit("PICUS_AGENT_WOODPECKER_AGENT_SECRET"),
-                agent_image: read_env_or_default(
+                image: read_env_or_default(
                     "PICUS_AGENT_IMAGE",
                     "woodpeckerci/woodpecker-agent:latest",
                 ),
-                grpc_secure: read_env_or_default("PICUS_AGENT_WOODPECKER_GRPC_SECURE", "true"),
+                params: {
+                    let mut params = Vec::new();
+                    let mut all_keys = Vec::new();
+
+                    for (key, value) in std::env::vars() {
+                        if key.starts_with("PICUS_AGENT_WOODPECKER_") {
+                            debug!("{} found", key);
+                            params.push((
+                                key.strip_prefix("PICUS_AGENT_").unwrap().to_string(),
+                                value,
+                            ));
+                            all_keys.push(key);
+                        }
+                    }
+
+                    // Check if the core parametes are present
+                    let required_keys = [
+                        "PICUS_AGENT_WOODPECKER_SERVER",
+                        "PICUS_AGENT_WOODPECKER_AGENT_SECRET",
+                    ];
+                    required_keys.iter().for_each(|k| {
+                        if !all_keys.contains(&k.to_string()) {
+                            error!("Environment variable {} not found!", *k);
+                            process::exit(1);
+                        }
+                    });
+
+                    params
+                },
             },
         }
     }
@@ -137,7 +160,7 @@ impl HetznerAgentProvider {
             label_selector,
             server_name,
             ssh_keys,
-            user_data: create_user_data(params.agent_config),
+            user_data: create_user_data(&params.agent_config),
         }
     }
 
