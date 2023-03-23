@@ -21,8 +21,7 @@ pub struct WpQueueInfo {
     // waiting_on_deps: u32,
     // running: u32,
     stats: WpQueueInfoStats,
-    #[serde(rename = "Paused")]
-    paused: bool,
+    // paused: bool,
 }
 
 pub struct Strategy {
@@ -99,7 +98,6 @@ mod tests {
                 running_count: 0,
                 completed_count: 0,
             },
-            paused: false,
         };
         strategy.apply(&queue_info).await;
     }
@@ -122,7 +120,6 @@ mod tests {
                 running_count: 0,
                 completed_count: 0,
             },
-            paused: false,
         };
         strategy.apply(&queue_info).await;
 
@@ -136,7 +133,6 @@ mod tests {
                 running_count: 0,
                 completed_count: 0,
             },
-            paused: false,
         };
         strategy.apply(&queue_info).await;
     }
@@ -159,7 +155,6 @@ mod tests {
                 running_count: 0,
                 completed_count: 0,
             },
-            paused: false,
         };
         strategy.apply(&queue_info).await;
 
@@ -171,7 +166,6 @@ mod tests {
                 running_count: 0,
                 completed_count: 0,
             },
-            paused: false,
         };
         strategy.apply(&queue_info).await;
     }
