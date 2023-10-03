@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/cc-debian11:nonroot
+FROM gcr.io/distroless/cc-debian12:nonroot
 
 LABEL org.opencontainers.image.source https://github.com/windsource/picus
 

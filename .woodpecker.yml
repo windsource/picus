@@ -1,5 +1,5 @@
 variables:
-  - &rust 'rust:1.66.0-bullseye'
+  - &rust 'rust:1.72.0-bookworm'
   - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:2.1.0'
 
 pipeline:
