@@ -1,8 +1,22 @@
 use crate::agent::AgentProvider;
 use log::{error, info};
 use serde::Deserialize;
-use std::time::Duration;
+use std::{collections::HashMap, time::Duration};
 use tokio::time::Instant;
+
+#[derive(Deserialize, Debug)]
+#[allow(dead_code)]
+pub struct WpQueueInfoPending {
+    id: String,
+    labels: HashMap<String, String>,
+}
+
+#[derive(Deserialize, Debug)]
+#[allow(dead_code)]
+pub struct WpQueueInfoRunning {
+    id: String,
+    labels: HashMap<String, String>,
+}
 
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
@@ -17,11 +31,9 @@ pub struct WpQueueInfoStats {
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct WpQueueInfo {
-    // pending: u32,
-    // waiting_on_deps: u32,
-    // running: u32,
+    pending: Option<Vec<WpQueueInfoPending>>,
+    running: Option<Vec<WpQueueInfoRunning>>,
     stats: WpQueueInfoStats,
-    // paused: bool,
 }
 
 pub struct Strategy {
@@ -81,7 +93,132 @@ impl Strategy {
 mod tests {
     use super::*;
     use crate::agent::MockAgentProvider;
+    #[cfg(feature = "json")]
+    use serde_json;
     use tokio::time::sleep;
+
+    #[test]
+    fn parse_queue_info_all_null() {
+        static QUEUE_INFO: &str = r#"{
+  "pending": null,
+  "waiting_on_deps": null,
+  "running": null,
+  "stats": {
+    "worker_count": 0,
+    "pending_count": 0,
+    "waiting_on_deps_count": 0,
+    "running_count": 0,
+    "completed_count": 0
+  },
+  "paused": false
+}"#;
+        let wp_queue_info: WpQueueInfo = serde_json::from_str(QUEUE_INFO).unwrap();
+        assert!(wp_queue_info.pending.is_none());
+        assert_eq!(wp_queue_info.stats.worker_count, 0);
+    }
+
+    #[test]
+    fn parse_queue_info_pending() {
+        static QUEUE_INFO: &str = r#"{
+  "pending": [
+    {
+      "id": "11",
+      "data": "REDACTED",
+      "labels": {
+        "platform": "",
+        "repo": "windsource/woodpecker-test"
+      },
+      "dependencies": null,
+      "run_on": null,
+      "dep_status": {},
+      "agent_id": 0
+    },
+    {
+      "id": "12",
+      "data": "REDACTED",
+      "labels": {
+        "platform": "",
+        "repo": "windsource/woodpecker-test"
+      },
+      "dependencies": null,
+      "run_on": null,
+      "dep_status": {},
+      "agent_id": 0
+    }
+  ],
+  "waiting_on_deps": null,
+  "running": null,
+  "stats": {
+    "worker_count": 0,
+    "pending_count": 2,
+    "waiting_on_deps_count": 0,
+    "running_count": 0,
+    "completed_count": 0
+  },
+  "paused": false
+}"#;
+        let wp_queue_info: WpQueueInfo = serde_json::from_str(QUEUE_INFO).unwrap();
+        let pending = wp_queue_info.pending.unwrap();
+        assert_eq!(pending.len(), 2);
+        assert_eq!(
+            pending[0].labels.get("repo"),
+            Some(&String::from("windsource/woodpecker-test"))
+        );
+        assert_eq!(wp_queue_info.stats.worker_count, 0);
+    }
+
+    #[test]
+    fn parse_queue_info_pending_running() {
+        static QUEUE_INFO: &str = r#"{
+  "pending": [
+    {
+      "id": "12",
+      "data": "REDACTED",
+      "labels": {
+        "platform": "",
+        "repo": "windsource/woodpecker-test"
+      },
+      "dependencies": null,
+      "run_on": null,
+      "dep_status": {},
+      "agent_id": 0
+    }
+  ],
+  "waiting_on_deps": null,
+  "running": [
+    {
+      "id": "11",
+      "data": "REDACTED",
+      "labels": {
+        "platform": "",
+        "repo": "windsource/woodpecker-test"
+      },
+      "dependencies": null,
+      "run_on": null,
+      "dep_status": {},
+      "agent_id": 1
+    }
+  ],
+  "stats": {
+    "worker_count": 0,
+    "pending_count": 1,
+    "waiting_on_deps_count": 0,
+    "running_count": 1,
+    "completed_count": 0
+  },
+  "paused": false
+}"#;
+        let wp_queue_info: WpQueueInfo = serde_json::from_str(QUEUE_INFO).unwrap();
+        let pending = wp_queue_info.pending.unwrap();
+        let running = wp_queue_info.running.unwrap();
+        assert_eq!(pending.len(), 1);
+        assert_eq!(running.len(), 1);
+        assert_eq!(
+            running[0].labels.get("repo"),
+            Some(&String::from("windsource/woodpecker-test"))
+        );
+        assert_eq!(wp_queue_info.stats.worker_count, 0);
+    }
 
     #[tokio::test]
     async fn stop_running_agent_present_on_startup() {
@@ -91,6 +228,8 @@ mod tests {
         let mut strategy = Strategy::new(Box::new(mock), Duration::new(60, 0));
 
         let queue_info = WpQueueInfo {
+            pending: None,
+            running: None,
             stats: WpQueueInfoStats {
                 worker_count: 1,
                 pending_count: 0,
@@ -113,6 +252,8 @@ mod tests {
         let mut strategy = Strategy::new(Box::new(mock), d);
 
         let queue_info = WpQueueInfo {
+            pending: None,
+            running: None,
             stats: WpQueueInfoStats {
                 worker_count: 0,
                 pending_count: 1,
@@ -126,6 +267,8 @@ mod tests {
         sleep(d).await;
 
         let queue_info = WpQueueInfo {
+            pending: None,
+            running: None,
             stats: WpQueueInfoStats {
                 worker_count: 1,
                 pending_count: 0,
@@ -148,6 +291,8 @@ mod tests {
         let mut strategy = Strategy::new(Box::new(mock), d);
 
         let queue_info = WpQueueInfo {
+            pending: None,
+            running: None,
             stats: WpQueueInfoStats {
                 worker_count: 0,
                 pending_count: 1,
@@ -159,6 +304,8 @@ mod tests {
         strategy.apply(&queue_info).await;
 
         let queue_info = WpQueueInfo {
+            pending: None,
+            running: None,
             stats: WpQueueInfoStats {
                 worker_count: 1,
                 pending_count: 0,

@@ -203,7 +203,7 @@ impl HetznerAgentProvider {
     }
 
     /// Shutdown server and wait until shutdown is finished
-    async fn shutdown_server(&self, id: i32) -> Result<(), String> {
+    async fn shutdown_server(&self, id: i64) -> Result<(), String> {
         let result = servers_api::shutdown_server(&self.config, ShutdownServerParams { id }).await;
         if let Err(err) = result {
             let msg = format!("Error: Could not shutdown server: {}", err);
