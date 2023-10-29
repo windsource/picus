@@ -1,3 +1,4 @@
+use crate::agent::Labels;
 use crate::{agent::AgentProvider, env::read_env_or_exit};
 use async_trait::async_trait;
 use aws_sdk_ec2::{model::InstanceStateName, Client};
@@ -194,6 +195,18 @@ impl AgentProvider for AwsAgentProvider {
             }
         }
         Ok(())
+    }
+
+    async fn is_running(&self) -> Result<bool, Box<dyn Error>> {
+        let state = self.get_instance_state().await?;
+        match state {
+            InstanceStateName::Running => Ok(true),
+            _ => Ok(false),
+        }
+    }
+
+    fn supports_labels(&self, labels: &Labels) -> bool {
+        unimplemented!();
     }
 }
 

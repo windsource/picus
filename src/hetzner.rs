@@ -1,4 +1,4 @@
-use crate::agent::AgentProvider;
+use crate::agent::{AgentProvider, FilterLabels, Labels};
 use crate::env::*;
 use async_trait::async_trait;
 use handlebars::Handlebars;
@@ -109,6 +109,7 @@ impl HetznerAgentProviderParams {
                     let required_keys = [
                         "PICUS_AGENT_WOODPECKER_SERVER",
                         "PICUS_AGENT_WOODPECKER_AGENT_SECRET",
+                        "PICUS_AGENT_WOODPECKER_FILTER_LABELS",
                     ];
                     required_keys.iter().for_each(|k| {
                         if !all_keys.contains(&k.to_string()) {
@@ -132,6 +133,7 @@ pub struct HetznerAgentProvider {
     server_name: String,
     ssh_keys: Vec<String>,
     user_data: String,
+    filter_labels: FilterLabels,
 }
 
 impl HetznerAgentProvider {
@@ -161,6 +163,15 @@ impl HetznerAgentProvider {
             server_name,
             ssh_keys,
             user_data: create_user_data(&params.agent_config),
+            filter_labels: FilterLabels::from_string(
+                &params
+                    .agent_config
+                    .params
+                    .iter()
+                    .filter(|(k, _v)| k == "WOODPECKER_FILTER_LABELS")
+                    .collect::<Vec<_>>()[0]
+                    .1,
+            ),
         }
     }
 
@@ -266,6 +277,24 @@ impl AgentProvider for HetznerAgentProvider {
             }
         }
         Ok(())
+    }
+
+    async fn is_running(&self) -> Result<bool, Box<dyn Error>> {
+        let servers = self.list_instances().await?.servers;
+        if servers.is_empty() {
+            return Ok(false);
+        }
+        if servers.len() > 1 {
+            error!("More than one agent found: {}!", servers.len())
+        }
+        match servers[0].status {
+            server::Status::Running => Ok(true),
+            _ => Ok(false),
+        }
+    }
+
+    fn supports_labels(&self, labels: &Labels) -> bool {
+        self.filter_labels.supports(labels)
     }
 }
 
