@@ -2,6 +2,15 @@ variables:
   - &rust 'rust:1.72.0-bookworm'
   - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:2.1.0'
 
+clone:
+  git:
+    image: woodpeckerci/plugin-git:2.2.0
+    when:
+      - event: pull_request
+      - event: [push, tag, manual]
+        branch: main
+
+
 pipeline:
   build-x86:
     image: *rust
@@ -11,7 +20,11 @@ pipeline:
       - cargo build --release
       - mkdir -p target/linux/amd64
       - cp target/release/picus target/linux/amd64/picus
-    
+    when:
+      - event: pull_request
+      - event: [push, tag, manual]
+        branch: main
+
   build-arm64:
     image: *rust
     commands: 
@@ -24,6 +37,10 @@ pipeline:
       - RUSTFLAGS="-C linker=aarch64-linux-gnu-gcc" PKG_CONFIG_SYSROOT_DIR=/ cargo build --target aarch64-unknown-linux-gnu --release
       - mkdir -p target/linux/arm64
       - cp target/aarch64-unknown-linux-gnu/release/picus target/linux/arm64/
+    when:
+      - event: pull_request
+      - event: [push, tag, manual]
+        branch: main
 
   publish-distroless:
     image: *buildx_plugin
