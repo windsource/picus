@@ -1,5 +1,5 @@
 use crate::agent::{AgentProvider, Labels};
-use log::{debug, error, info};
+use log::{error, info};
 use serde::Deserialize;
 use std::time::Duration;
 use tokio::time::Instant;

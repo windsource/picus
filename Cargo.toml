@@ -1,7 +1,7 @@
 [package]
 name = "picus"
 description ="Dynamically creates agent for Woodpecker CI in the cloud"
-version = "0.5.2"
+version = "0.6.0"
 edition = "2021"
 license = "MIT"
 
@@ -16,8 +16,8 @@ handlebars = "4.4"
 go-parse-duration = "0.1"
 env_logger = "0.10"
 log = "0.4"
-aws-sdk-ec2 = "0.23"
-aws-config = "0.53"
+aws-sdk-ec2 = "0.34"
+aws-config = "0.56"
 
 [dev-dependencies]
 mockall = "0.11.2"

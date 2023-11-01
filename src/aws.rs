@@ -1,7 +1,8 @@
-use crate::agent::Labels;
+use crate::agent::{FilterLabels, Labels};
 use crate::{agent::AgentProvider, env::read_env_or_exit};
 use async_trait::async_trait;
-use aws_sdk_ec2::{model::InstanceStateName, Client};
+use aws_sdk_ec2::types::InstanceStateName;
+use aws_sdk_ec2::Client;
 use log::{debug, error, info};
 use std::error::Error;
 use std::time::Duration;
@@ -9,19 +10,22 @@ use tokio::time::sleep;
 
 pub struct AwsAgentProviderParams {
     instance_id: String,
+    filter_labels: String,
 }
 
 impl AwsAgentProviderParams {
     pub fn from_env() -> AwsAgentProviderParams {
         AwsAgentProviderParams {
             instance_id: read_env_or_exit("PICUS_AWS_INSTANCE_ID"),
+            filter_labels: read_env_or_exit("PICUS_AGENT_WOODPECKER_FILTER_LABELS"),
         }
     }
 }
 
 pub struct AwsAgentProvider {
-    params: AwsAgentProviderParams,
+    instance_id: String,
     client: Client,
+    filter_labels: FilterLabels,
 }
 
 impl AwsAgentProvider {
@@ -29,7 +33,11 @@ impl AwsAgentProvider {
         let config = aws_config::from_env().load().await;
         let client = Client::new(&config);
 
-        let ap = AwsAgentProvider { params, client };
+        let ap = AwsAgentProvider {
+            instance_id: params.instance_id,
+            client,
+            filter_labels: FilterLabels::from_string(&params.filter_labels),
+        };
 
         // Check access to AWS and if instance exists
         match ap.get_instance_state().await {
@@ -39,7 +47,7 @@ impl AwsAgentProvider {
             }
             Ok(state_name) => info!(
                 "Acces to AWS ok and instance {} found, state {:?}",
-                ap.params.instance_id, state_name
+                ap.instance_id, state_name
             ),
         }
 
@@ -47,7 +55,7 @@ impl AwsAgentProvider {
     }
 
     async fn get_instance_state(&self) -> Result<InstanceStateName, Box<dyn Error>> {
-        let ids = Some(vec![self.params.instance_id.clone()]);
+        let ids = Some(vec![self.instance_id.clone()]);
         let resp = self
             .client
             .describe_instances()
@@ -57,14 +65,14 @@ impl AwsAgentProvider {
 
         for reservation in resp.reservations().unwrap_or_default() {
             for instance in reservation.instances().unwrap_or_default() {
-                if instance.instance_id().unwrap() == self.params.instance_id {
+                if instance.instance_id().unwrap() == self.instance_id {
                     match instance.state() {
                         Some(state) => match &state.name {
                             Some(name) => return Ok(name.clone()),
                             None => {
                                 return Err(format!(
                                     "could not resolve name state of instance {}",
-                                    self.params.instance_id
+                                    self.instance_id
                                 )
                                 .into())
                             }
@@ -72,7 +80,7 @@ impl AwsAgentProvider {
                         None => {
                             return Err(format!(
                                 "could not get instance state of {}",
-                                self.params.instance_id
+                                self.instance_id
                             )
                             .into())
                         }
@@ -81,7 +89,7 @@ impl AwsAgentProvider {
             }
         }
 
-        Err(format!("instance {} not found", self.params.instance_id).into())
+        Err(format!("instance {} not found", self.instance_id).into())
     }
 }
 
@@ -94,7 +102,7 @@ impl AgentProvider for AwsAgentProvider {
                 info!("Starting instance ...");
                 self.client
                     .start_instances()
-                    .instance_ids(self.params.instance_id.clone())
+                    .instance_ids(self.instance_id.clone())
                     .send()
                     .await?;
             }
@@ -112,7 +120,7 @@ impl AgentProvider for AwsAgentProvider {
                             info!("Instance is stopped. Starting instance ...");
                             self.client
                                 .start_instances()
-                                .instance_ids(self.params.instance_id.clone())
+                                .instance_ids(self.instance_id.clone())
                                 .send()
                                 .await?;
                             break;
@@ -152,7 +160,7 @@ impl AgentProvider for AwsAgentProvider {
                 info!("Stopping instance ...");
                 self.client
                     .stop_instances()
-                    .instance_ids(self.params.instance_id.clone())
+                    .instance_ids(self.instance_id.clone())
                     .send()
                     .await?;
             }
@@ -170,7 +178,7 @@ impl AgentProvider for AwsAgentProvider {
                             info!("Instance is now running. Stopping instance ...");
                             self.client
                                 .stop_instances()
-                                .instance_ids(self.params.instance_id.clone())
+                                .instance_ids(self.instance_id.clone())
                                 .send()
                                 .await?;
                             break;
@@ -206,7 +214,7 @@ impl AgentProvider for AwsAgentProvider {
     }
 
     fn supports_labels(&self, labels: &Labels) -> bool {
-        unimplemented!();
+        self.filter_labels.supports(labels)
     }
 }
 
