@@ -25,14 +25,16 @@ impl FilterLabels {
         });
         FilterLabels(labels)
     }
-    pub fn supports(&self, labels: &Labels) -> bool {
-        for (k, v) in labels.iter() {
-            if let Some(filter_value) = self.0.get(k) {
-                if filter_value != v && filter_value != "*" {
+    pub fn supports(&self, workflow_labels: &Labels) -> bool {
+        for (k, v) in workflow_labels.iter() {
+            if !v.is_empty() {
+                if let Some(filter_value) = self.0.get(k) {
+                    if filter_value != v && filter_value != "*" {
+                        return false;
+                    }
+                } else {
                     return false;
                 }
-            } else {
-                return false;
             }
         }
         true
@@ -46,27 +48,37 @@ mod tests {
     #[test]
     fn filter_labels_empty_labels() {
         let fl = FilterLabels::from_string("platform=linux/amd64,backend=docker");
-        let labels: Labels = HashMap::new();
-        assert!(fl.supports(&labels));
+        let workflow_labels: Labels = HashMap::new();
+        assert!(fl.supports(&workflow_labels));
     }
 
     #[test]
     fn filter_labels_matching_label() {
         let fl = FilterLabels::from_string("platform=linux/amd64,backend=docker");
-        let labels: Labels = HashMap::from([("platform".to_string(), "linux/amd64".to_string())]);
-        assert!(fl.supports(&labels));
+        let workflow_labels: Labels =
+            HashMap::from([("platform".to_string(), "linux/amd64".to_string())]);
+        assert!(fl.supports(&workflow_labels));
     }
 
     #[test]
     fn filter_labels_not_matching_label() {
         let fl = FilterLabels::from_string("platform=linux/amd64,backend=docker");
-        let labels: Labels = HashMap::from([("platform".to_string(), "linux/arm64".to_string())]);
-        assert!(!fl.supports(&labels));
+        let workflow_labels: Labels =
+            HashMap::from([("platform".to_string(), "linux/arm64".to_string())]);
+        assert!(!fl.supports(&workflow_labels));
     }
+
     #[test]
     fn filter_labels_wildcard() {
         let fl = FilterLabels::from_string("type=*,platform=linux/amd64,backend=docker");
-        let labels: Labels = HashMap::from([("type".to_string(), "picus".to_string())]);
-        assert!(fl.supports(&labels));
+        let workflow_labels: Labels = HashMap::from([("type".to_string(), "picus".to_string())]);
+        assert!(fl.supports(&workflow_labels));
+    }
+
+    #[test]
+    fn filter_labels_empty_workflow_value() {
+        let fl = FilterLabels::from_string("type=*,platform=linux/amd64,backend=docker");
+        let workflow_labels: Labels = HashMap::from([("platform".to_string(), "".to_string())]);
+        assert!(fl.supports(&workflow_labels));
     }
 }
