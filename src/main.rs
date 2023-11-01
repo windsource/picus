@@ -37,6 +37,7 @@ async fn main() -> Result<(), Error> {
     let poll_interval = duration_from_string(&read_env_or_default("PICUS_POLL_INTERVAL", "10s"));
     let shutdown_timer = duration_from_string(&read_env_or_default("PICUS_MAX_IDLE_TIME", "30m"));
     let provider_type = read_env_or_exit("PICUS_PROVIDER_TYPE");
+    let agent_id = read_env_or_exit("PICUS_WOODPECKER_AGENT_ID");
 
     let agent_provider: Box<dyn AgentProvider>;
     match provider_type.as_str() {
@@ -61,7 +62,7 @@ async fn main() -> Result<(), Error> {
         }
     }
 
-    let mut strategy = Strategy::new(agent_provider, shutdown_timer);
+    let mut strategy = Strategy::new(agent_provider, shutdown_timer, agent_id);
 
     let request_url = format!("{}/api/queue/info", wp_server);
     let client = reqwest::Client::new();
@@ -74,7 +75,6 @@ async fn main() -> Result<(), Error> {
             .await?;
 
         let wp_queue_info: WpQueueInfo = response.json().await?;
-        info!("{:?}", wp_queue_info);
 
         strategy.apply(&wp_queue_info).await;
 

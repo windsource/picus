@@ -28,7 +28,11 @@ Parameters:
   WoodpeckerAgentImage:
     Description: Container image to use for woodpecker agent
     Type: String
-    Default: 'woodpeckerci/woodpecker-agent:next-af2c278723'
+    Default: 'woodpeckerci/woodpecker-agent:next-5b3bba726d'
+  WoodpeckerFilterLabels:
+    Description: Labels for agent to pick pipeline
+    Type: String
+    Default: 'platform=linux/amd64,backend=docker,repo=*'
 Mappings: 
   RegionMap: 
     eu-west-1:
@@ -100,6 +104,7 @@ Resources:
                 environment:
                   - WOODPECKER_SERVER=${WoodpeckerServer}
                   - WOODPECKER_AGENT_SECRET=${WoodpeckerAgentSecret}
+                  - WOODPECKER_FILTER_LABELS=${WoodpeckerFilterLabels}
                   - WOODPECKER_GRPC_SECURE=${WoodpeckerGrpcSecure}
                   - WOODPECKER_BACKEND=docker
             EOF
