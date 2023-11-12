@@ -90,9 +90,13 @@ impl Strategy {
         }
 
         info!(
-            "Agent is {}running with {} jobs and {} pending jobs for that agent",
+            "Agent is {}running{}. {} pending job(s) for that agent",
             if agent_is_running { "" } else { "not " },
-            running_count,
+            if agent_is_running {
+                format!(" with {} job(s)", running_count)
+            } else {
+                "".to_string()
+            },
             pending_count
         );
 
