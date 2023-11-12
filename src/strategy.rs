@@ -14,7 +14,7 @@ pub struct WpQueueInfoPending {
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct WpQueueInfoRunning {
-    id: String,
+    agent_id: u32,
     labels: Labels,
 }
 
@@ -84,7 +84,7 @@ impl Strategy {
         if let Some(running) = &queue_info.running {
             running_count = running
                 .iter()
-                .filter(|r| r.id == self.agent_id)
+                .filter(|r| r.agent_id.to_string() == self.agent_id)
                 .collect::<Vec<_>>()
                 .len();
         }
