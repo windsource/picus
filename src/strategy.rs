@@ -25,7 +25,6 @@ pub struct WpQueueInfoStats {
     pending_count: u32,
     waiting_on_deps_count: u32,
     running_count: u32,
-    completed_count: u32,
 }
 
 #[derive(Deserialize, Debug)]
@@ -152,8 +151,7 @@ mod tests {
     "worker_count": 0,
     "pending_count": 0,
     "waiting_on_deps_count": 0,
-    "running_count": 0,
-    "completed_count": 0
+    "running_count": 0
   },
   "paused": false
 }"#;
@@ -197,8 +195,7 @@ mod tests {
     "worker_count": 0,
     "pending_count": 2,
     "waiting_on_deps_count": 0,
-    "running_count": 0,
-    "completed_count": 0
+    "running_count": 0
   },
   "paused": false
 }"#;
@@ -248,8 +245,7 @@ mod tests {
     "worker_count": 0,
     "pending_count": 1,
     "waiting_on_deps_count": 0,
-    "running_count": 1,
-    "completed_count": 0
+    "running_count": 1
   },
   "paused": false
 }"#;
@@ -281,7 +277,6 @@ mod tests {
                 pending_count: 0,
                 waiting_on_deps_count: 0,
                 running_count: 0,
-                completed_count: 0,
             },
         };
         strategy.apply(&queue_info).await;
@@ -318,7 +313,6 @@ mod tests {
                 pending_count: 1,
                 waiting_on_deps_count: 0,
                 running_count: 0,
-                completed_count: 0,
             },
         };
         strategy.apply(&queue_info).await;
@@ -333,7 +327,6 @@ mod tests {
                 pending_count: 0,
                 waiting_on_deps_count: 0,
                 running_count: 0,
-                completed_count: 0,
             },
         };
         strategy.apply(&queue_info).await;
@@ -370,7 +363,6 @@ mod tests {
                 pending_count: 1,
                 waiting_on_deps_count: 0,
                 running_count: 0,
-                completed_count: 0,
             },
         };
         strategy.apply(&queue_info).await;
@@ -383,7 +375,6 @@ mod tests {
                 pending_count: 0,
                 waiting_on_deps_count: 0,
                 running_count: 0,
-                completed_count: 0,
             },
         };
         strategy.apply(&queue_info).await;
