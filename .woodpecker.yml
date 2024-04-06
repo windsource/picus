@@ -10,8 +10,7 @@ clone:
       - event: [push, tag, manual]
         branch: main
 
-
-pipeline:
+steps:
   build-x86:
     image: *rust
     commands: 
