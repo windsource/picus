@@ -41,6 +41,17 @@ steps:
       - event: [push, tag, manual]
         branch: main
 
+  check-licenses:
+    image: *rust
+    commands: 
+      - export CARGO_HOME=$(pwd)/.cargo/
+      - cargo install cargo-deny
+      - cargo deny check licenses
+    when:
+      - event: pull_request
+      - event: [push, tag, manual]
+        branch: main
+
   publish-distroless:
     image: *buildx_plugin
     settings:
