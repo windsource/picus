@@ -1,5 +1,5 @@
 variables:
-  - &rust 'rust:1.72.0-bookworm'
+  - &rust 'rust:1.77.1-bookworm'
   - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:2.1.0'
 
 clone:
