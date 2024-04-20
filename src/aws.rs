@@ -1,6 +1,7 @@
 use crate::agent::{FilterLabels, Labels};
 use crate::{agent::AgentProvider, env::read_env_or_exit};
 use async_trait::async_trait;
+use aws_config::BehaviorVersion;
 use aws_sdk_ec2::types::InstanceStateName;
 use aws_sdk_ec2::Client;
 use log::{debug, error, info};
@@ -30,7 +31,9 @@ pub struct AwsAgentProvider {
 
 impl AwsAgentProvider {
     pub async fn new(params: AwsAgentProviderParams) -> Result<AwsAgentProvider, Box<dyn Error>> {
-        let config = aws_config::from_env().load().await;
+        let config = aws_config::defaults(BehaviorVersion::v2023_11_09())
+            .load()
+            .await;
         let client = Client::new(&config);
 
         let ap = AwsAgentProvider {
@@ -63,8 +66,8 @@ impl AwsAgentProvider {
             .send()
             .await?;
 
-        for reservation in resp.reservations().unwrap_or_default() {
-            for instance in reservation.instances().unwrap_or_default() {
+        for reservation in resp.reservations() {
+            for instance in reservation.instances() {
                 if instance.instance_id().unwrap() == self.instance_id {
                     match instance.state() {
                         Some(state) => match &state.name {

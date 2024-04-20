@@ -1,24 +1,24 @@
 [package]
 name = "picus"
 description ="Dynamically creates agent for Woodpecker CI in the cloud"
-version = "0.6.2"
+version = "0.6.3"
 edition = "2021"
 license = "MIT"
 
 [dependencies]
-reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-hcloud = { version = "0.17", default-features = false, features = ["rustls-tls"] }
+hcloud = { version = "0.19", default-features = false, features = ["rustls-tls"] }
 async-trait = "0.1"
 handlebars = "4.4"
 go-parse-duration = "0.1"
-env_logger = "0.10"
+env_logger = "0.11"
 log = "0.4"
-aws-sdk-ec2 = "0.34"
-aws-config = "0.56"
+aws-sdk-ec2 = "1"
+aws-config = "1"
 
 [dev-dependencies]
-mockall = "0.11.2"
+mockall = "0.12"
 test-log = "0.2.11"

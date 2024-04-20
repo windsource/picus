@@ -28,7 +28,7 @@ Parameters:
   WoodpeckerAgentImage:
     Description: Container image to use for woodpecker agent
     Type: String
-    Default: 'woodpeckerci/woodpecker-agent:next-5b3bba726d'
+    Default: 'woodpeckerci/woodpecker-agent:v2.4.1-alpine'
   WoodpeckerFilterLabels:
     Description: Labels for agent to pick pipeline
     Type: String
