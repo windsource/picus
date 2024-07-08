@@ -68,13 +68,17 @@ async fn main() -> Result<(), Error> {
     let client = reqwest::Client::new();
 
     loop {
-        let response = client
+        let content = client
             .get(&request_url)
             .bearer_auth(&wp_token)
             .send()
+            .await?
+            .bytes()
             .await?;
-
-        let wp_queue_info: WpQueueInfo = response.json().await?;
+        let Ok(wp_queue_info) = serde_json::from_slice::<WpQueueInfo>(&content) else {
+            error!("Cannot decode JSON from {request_url}: {content:?}");
+            process::exit(1);
+        };
 
         strategy.apply(&wp_queue_info).await;
 
