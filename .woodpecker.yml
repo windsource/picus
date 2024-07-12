@@ -2,6 +2,9 @@ variables:
   - &rust 'rust:1.77.1-bookworm'
   - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:2.1.0'
 
+labels:
+  platform: linux/amd64
+
 clone:
   git:
     image: woodpeckerci/plugin-git:2.2.0
