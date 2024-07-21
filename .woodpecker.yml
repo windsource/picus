@@ -3,7 +3,7 @@ variables:
   - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:2.1.0'
 
 labels:
-  platform: linux/arm64
+  platform: linux/amd64
 
 clone:
   git:
@@ -14,30 +14,14 @@ clone:
         branch: main
 
 steps:
-  - name: build-arm64
-    depends_on: []
+  - name: build-x86
     image: *rust
     commands:
       - apt update
       - apt install -y musl-tools
-      - rustup target add aarch64-unknown-linux-musl
-      - export CARGO_HOME=$(pwd)/.cargo/
-      - cargo test --target aarch64-unknown-linux-musl
-      - cargo build --release --target aarch64-unknown-linux-musl
-      - cp target/aarch64-unknown-linux-musl/release/picus target/picus-linux-arm64
-    when:
-      - event: pull_request
-      - event: [push, tag, manual]
-        branch: main
-
-  - name: build-x86
-    depends_on: []
-    image: *rust
-    commands:
-      - apt update
-      - apt install -y gcc-x86-64-linux-gnu musl-tools
       - rustup target add x86_64-unknown-linux-musl
       - export CARGO_HOME=$(pwd)/.cargo/
+      - cargo test --target x86_64-unknown-linux-musl
       - cargo build --release --target x86_64-unknown-linux-musl
       - cp target/x86_64-unknown-linux-musl/release/picus target/picus-linux-amd64
     when:
@@ -45,8 +29,22 @@ steps:
       - event: [push, tag, manual]
         branch: main
 
+  - name: build-arm64
+    image: *rust
+    commands:
+      - dpkg --add-architecture arm64
+      - apt update
+      - apt install -y --no-install-recommends gcc-aarch64-linux-gnu musl-tools libc6-dev:arm64
+      - rustup target add aarch64-unknown-linux-musl
+      - export CARGO_HOME=$(pwd)/.cargo/
+      - cargo build --release --target aarch64-unknown-linux-musl
+      - cp target/aarch64-unknown-linux-musl/release/picus target/picus-linux-arm64
+    when:
+      - event: pull_request
+      - event: [push, tag, manual]
+        branch: main
+
   - name: check-licenses
-    depends_on: []
     image: *rust
     commands: 
       - export CARGO_HOME=$(pwd)/.cargo/
@@ -58,7 +56,6 @@ steps:
         branch: main
 
   - name: publish-distroless
-    depends_on: [build-arm64, build-x86, check-licenses]
     image: *buildx_plugin
     settings:
       platforms: linux/amd64,linux/arm64
@@ -83,7 +80,6 @@ steps:
       branch: main
 
   - name: publish-debian
-    depends_on: [build-arm64, build-x86, check-licenses]
     image: *buildx_plugin
     settings:
       platforms: linux/amd64,linux/arm64
