@@ -55,6 +55,7 @@ steps:
         branch: main
 
   - name: publish-distroless
+    depends_on: [build-arm64, build-x86, check-licenses]
     image: *buildx_plugin
     settings:
       platforms: linux/amd64,linux/arm64
@@ -79,6 +80,7 @@ steps:
       branch: main
 
   - name: publish-debian
+    depends_on: [build-arm64, build-x86, check-licenses]
     image: *buildx_plugin
     settings:
       platforms: linux/amd64,linux/arm64
