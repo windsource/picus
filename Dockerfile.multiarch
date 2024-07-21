@@ -1,4 +1,4 @@
-FROM debian:12.1-slim
+FROM debian:12.6-slim
 
 LABEL org.opencontainers.image.source https://github.com/windsource/picus
 
@@ -9,6 +9,6 @@ RUN groupadd -g 999 appuser && \
 USER appuser
 
 ARG TARGETOS TARGETARCH
-COPY target/${TARGETOS}/${TARGETARCH}/picus /usr/local/bin/picus
+COPY target/picus-${TARGETOS}-${TARGETARCH} /usr/local/bin/picus
 
 CMD ["/usr/local/bin/picus"]
