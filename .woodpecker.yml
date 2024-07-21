@@ -23,7 +23,8 @@ steps:
       - export CARGO_HOME=$(pwd)/.cargo/
       - cargo test --target x86_64-unknown-linux-musl
       - cargo build --release --target x86_64-unknown-linux-musl
-      - cp target/x86_64-unknown-linux-musl/release/picus target/picus-linux-amd64
+      - mkdir -p target/dist
+      - cp target/x86_64-unknown-linux-musl/release/picus target/dist/picus-linux-amd64
     when:
       - event: pull_request
       - event: [push, tag, manual]
@@ -38,7 +39,8 @@ steps:
       - rustup target add aarch64-unknown-linux-musl
       - export CARGO_HOME=$(pwd)/.cargo/
       - cargo build --release --target aarch64-unknown-linux-musl
-      - cp target/aarch64-unknown-linux-musl/release/picus target/picus-linux-arm64
+      - mkdir -p target/dist
+      - cp target/aarch64-unknown-linux-musl/release/picus target/dist/picus-linux-arm64
     when:
       - event: pull_request
       - event: [push, tag, manual]
