@@ -3,7 +3,7 @@ variables:
   - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:2.1.0'
 
 labels:
-  platform: linux/amd64
+  platform: linux/arm64
 
 clone:
   git:
@@ -14,41 +14,32 @@ clone:
         branch: main
 
 steps:
-  - name: build-x86
+  - name: build-arm64
     image: *rust
-    commands: |
-      if [ "$CI_SYSTEM_PLATFORM" = "linux/amd64" ]; then  
-        export CARGO_HOME=$(pwd)/.cargo/
-        cargo test
-        cargo build --release
-        mkdir -p target/linux/amd64
-        cp target/release/picus target/linux/amd64/picus
-      else
-        echo Unsupported platform!
-        exit1
-      fi
+    commands:
+      - apt update
+      - apt install -y musl-tools
+      - rustup target add aarch64-unknown-linux-musl
+      - export CARGO_HOME=$(pwd)/.cargo/
+      - cargo test --target aarch64-unknown-linux-musl
+      - cargo build --release --target aarch64-unknown-linux-musl
+      - mkdir -p target/linux/arm64
+      - cp target/aarch64-unknown-linux-musl/release/picus target/linux/arm64/
     when:
       - event: pull_request
       - event: [push, tag, manual]
         branch: main
 
-  - name: build-arm64
+  - name: build-x86
     image: *rust
-    commands: |
-      if [ "$CI_SYSTEM_PLATFORM" = "linux/amd64" ]; then  
-        dpkg --add-architecture arm64
-        apt-get update
-        export DEBIAN_FRONTED=noninteractive
-        apt-get -y install --no-install-recommends gcc-aarch64-linux-gnu libssl-dev:arm64 libc6-dev:arm64
-        rustup target add aarch64-unknown-linux-gnu
-        export CARGO_HOME=$(pwd)/.cargo/
-        RUSTFLAGS="-C linker=aarch64-linux-gnu-gcc" PKG_CONFIG_SYSROOT_DIR=/ cargo build --target aarch64-unknown-linux-gnu --release
-        mkdir -p target/linux/arm64
-        cp target/aarch64-unknown-linux-gnu/release/picus target/linux/arm64/
-      else
-        echo Unsupported platform!
-        exit1
-      fi
+    commands:
+      - apt update
+      - apt install -y gcc-x86-64-linux-gnu musl-tools
+      - rustup target add x86_64-unknown-linux-musl
+      - export CARGO_HOME=$(pwd)/.cargo/
+      - cargo build --release --target x86_64-unknown-linux-musl
+      - mkdir -p target/linux/amd64
+      - cp target/x86_64-unknown-linux-musl/release/picus target/linux/amd64/picus
     when:
       - event: pull_request
       - event: [push, tag, manual]

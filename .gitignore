@@ -2,4 +2,5 @@ target
 temp
 docker-compose.yml
 .devcontainer/*.env
-.cargo
+.cargo/*
+!.cargo/config.toml
