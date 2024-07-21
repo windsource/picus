@@ -15,6 +15,7 @@ clone:
 
 steps:
   - name: build-arm64
+    depends_on: []
     image: *rust
     commands:
       - apt update
@@ -30,6 +31,7 @@ steps:
         branch: main
 
   - name: build-x86
+    depends_on: []
     image: *rust
     commands:
       - apt update
@@ -44,6 +46,7 @@ steps:
         branch: main
 
   - name: check-licenses
+    depends_on: []
     image: *rust
     commands: 
       - export CARGO_HOME=$(pwd)/.cargo/
