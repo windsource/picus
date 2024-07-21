@@ -1,8 +1,8 @@
-FROM gcr.io/distroless/cc-debian12:nonroot
+FROM gcr.io/distroless/static-debian12:nonroot
 
 LABEL org.opencontainers.image.source https://github.com/windsource/picus
 
 ARG TARGETOS TARGETARCH
-COPY target/${TARGETOS}/${TARGETARCH}/picus /usr/local/bin/picus
+COPY target/picus-${TARGETOS}-${TARGETARCH} /usr/local/bin/picus
 
 CMD ["/usr/local/bin/picus"]
