@@ -24,6 +24,7 @@ steps:
       - cargo test --target x86_64-unknown-linux-musl
       - cargo build --release --target x86_64-unknown-linux-musl
       - cp target/x86_64-unknown-linux-musl/release/picus target/picus-linux-amd64
+      - ls target
     when:
       - event: pull_request
       - event: [push, tag, manual]
@@ -39,6 +40,7 @@ steps:
       - export CARGO_HOME=$(pwd)/.cargo/
       - cargo build --release --target aarch64-unknown-linux-musl
       - cp target/aarch64-unknown-linux-musl/release/picus target/picus-linux-arm64
+      - ls target
     when:
       - event: pull_request
       - event: [push, tag, manual]
@@ -50,6 +52,16 @@ steps:
       - export CARGO_HOME=$(pwd)/.cargo/
       - cargo install cargo-deny
       - cargo deny check licenses
+      - ls target
+    when:
+      - event: pull_request
+      - event: [push, tag, manual]
+        branch: main
+
+  - name: list-targets
+    image: *rust
+    commands: 
+      - ls target
     when:
       - event: pull_request
       - event: [push, tag, manual]
