@@ -117,20 +117,28 @@ contains all required tools.
 
 ### Build
 
+Debug build:
+
 ```shell
-cargo build
+make build
 ```
 
-Build for aarch64 target on x86 environment:
+Release build for amd64 target:
 
 ```shell
-RUSTFLAGS="-C linker=aarch64-linux-gnu-gcc" PKG_CONFIG_SYSROOT_DIR=/ cargo build --target aarch64-unknown-linux-gnu
+make build-amd64
+```
+
+Release build for arm64 target:
+
+```shell
+make build-arm64
 ```
 
 ### Test
 
-```console
-cargo test
+```shell
+make test
 ```
 
 In order to run the tests using Hetzner cloud as well, provide the required
@@ -143,5 +151,5 @@ cargo test hcloud -- --ignored
 To run all AWS tests with log level set to `trace` for Picus:
 
 ```console
- RUST_LOG="picus=trace" cargo test aws -- --ignored --nocapture
+RUST_LOG="picus=trace" cargo test aws -- --ignored --nocapture
 ```
