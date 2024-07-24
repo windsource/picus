@@ -4,3 +4,5 @@ docker-compose.yml
 .devcontainer/*.env
 .cargo/*
 !.cargo/config.toml
+vendor
+dist

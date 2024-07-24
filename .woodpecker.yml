@@ -14,17 +14,21 @@ clone:
         branch: main
 
 steps:
+  - name: vendor
+    image: *rust
+    commands:
+      - make vendor
+    when:
+      - event: tag
+
   - name: build-x86
     image: *rust
     commands:
       - apt update
       - apt install -y musl-tools
       - rustup target add x86_64-unknown-linux-musl
-      - export CARGO_HOME=$(pwd)/.cargo/
-      - cargo test --target x86_64-unknown-linux-musl
-      - cargo build --release --target x86_64-unknown-linux-musl
-      - mkdir -p target/dist
-      - cp target/x86_64-unknown-linux-musl/release/picus target/dist/picus-linux-amd64
+      - make test
+      - make build-amd64
     when:
       - event: pull_request
       - event: [push, tag, manual]
@@ -37,10 +41,7 @@ steps:
       - apt update
       - apt install -y --no-install-recommends gcc-aarch64-linux-gnu musl-tools libc6-dev:arm64
       - rustup target add aarch64-unknown-linux-musl
-      - export CARGO_HOME=$(pwd)/.cargo/
-      - cargo build --release --target aarch64-unknown-linux-musl
-      - mkdir -p target/dist
-      - cp target/aarch64-unknown-linux-musl/release/picus target/dist/picus-linux-arm64
+      - make build-arm64
     when:
       - event: pull_request
       - event: [push, tag, manual]
@@ -49,13 +50,18 @@ steps:
   - name: check-licenses
     image: *rust
     commands: 
-      - export CARGO_HOME=$(pwd)/.cargo/
-      - cargo install cargo-deny
-      - cargo deny check licenses
+      - make check-licenses
     when:
       - event: pull_request
       - event: [push, tag, manual]
         branch: main
+
+  - name: checksum
+    image: *rust
+    commands:
+      - make checksum
+    when:
+      - event: tag
 
   - name: publish-distroless
     image: *buildx_plugin
@@ -103,3 +109,14 @@ steps:
     when:
       event: [push, tag, manual]
       branch: main
+
+  - name: publish-release
+    image: woodpeckerci/plugin-release:0.1.0
+    settings:
+      files:
+        - 'dist/*'
+      api_key:
+        from_secret: github_password
+      title: ${CI_COMMIT_TAG##v}
+    when:
+      - event: tag
