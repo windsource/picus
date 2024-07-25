@@ -14,6 +14,16 @@ clone:
         branch: main
 
 steps:
+    # The license check has to before the vendor command as otherweise 'cargo install' will not work
+  - name: check-licenses
+    image: *rust
+    commands: 
+      - make check-licenses
+    when:
+      - event: pull_request
+      - event: [push, tag, manual]
+        branch: main
+
   - name: vendor
     image: *rust
     commands:
@@ -42,15 +52,6 @@ steps:
       - apt install -y --no-install-recommends gcc-aarch64-linux-gnu musl-tools libc6-dev:arm64
       - rustup target add aarch64-unknown-linux-musl
       - make build-arm64
-    when:
-      - event: pull_request
-      - event: [push, tag, manual]
-        branch: main
-
-  - name: check-licenses
-    image: *rust
-    commands: 
-      - make check-licenses
     when:
       - event: pull_request
       - event: [push, tag, manual]
