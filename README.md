@@ -120,25 +120,25 @@ contains all required tools.
 Debug build:
 
 ```shell
-make build
+just build
 ```
 
 Release build for amd64 target:
 
 ```shell
-make build-amd64
+just build-amd64
 ```
 
 Release build for arm64 target:
 
 ```shell
-make build-arm64
+just build-arm64
 ```
 
 ### Test
 
 ```shell
-make test
+just test
 ```
 
 In order to run the tests using Hetzner cloud as well, provide the required
