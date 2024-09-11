@@ -1,6 +1,6 @@
 variables:
   - &rust 'rust:1.79-bookworm'
-  - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:2.1.0'
+  - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:4.2.0'
 
 labels:
   platform: linux/amd64
@@ -14,6 +14,25 @@ clone:
         branch: main
 
 steps:
+  - name: build-dev-container
+    image: *buildx_plugin
+    settings:
+      repo: ghcr.io/windsource/picus-devcontainer
+      context: .devcontainer
+      tags_file: .devcontainer/VERSION
+      logins:
+        - registry: https://ghcr.io
+          username:
+            from_secret: github_username
+          password:
+            from_secret: github_password
+    when:
+      path:
+        - ".devcontainer/*"
+        - ".woodpecker.yml"
+      event: [push, manual]
+      branch: main  
+
     # The license check has to before the vendor command as otherweise 'cargo install' will not work
   - name: check-licenses
     image: *rust
