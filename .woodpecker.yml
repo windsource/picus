@@ -1,5 +1,5 @@
 variables:
-  - &rust 'rust:1.79-bookworm'
+  - &devcon 'ghcr.io/windsource/picus-devcontainer:1.0.0'
   - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:4.2.0'
 
 labels:
@@ -36,51 +36,44 @@ steps:
 
     # The license check has to before the vendor command as otherweise 'cargo install' will not work
   - name: check-licenses
-    image: *rust
+    image: *devcon
     commands: 
-      - make check-licenses
+      - just check-licenses
     when:
       - event: pull_request
       - event: [push, tag, manual]
         branch: main
 
   - name: vendor
-    image: *rust
+    image: *devcon
     commands:
-      - make vendor
+      - just vendor
     when:
       - event: tag
 
   - name: build-x86
-    image: *rust
+    image: *devcon
     commands:
-      - apt update
-      - apt install -y musl-tools
-      - rustup target add x86_64-unknown-linux-musl
-      - make test
-      - make build-amd64
+      - just test
+      - just build-amd64
     when:
       - event: pull_request
       - event: [push, tag, manual]
         branch: main
 
   - name: build-arm64
-    image: *rust
+    image: *devcon
     commands:
-      - dpkg --add-architecture arm64
-      - apt update
-      - apt install -y --no-install-recommends gcc-aarch64-linux-gnu musl-tools libc6-dev:arm64
-      - rustup target add aarch64-unknown-linux-musl
-      - make build-arm64
+      - just build-arm64
     when:
       - event: pull_request
       - event: [push, tag, manual]
         branch: main
 
   - name: checksum
-    image: *rust
+    image: *devcon
     commands:
-      - make checksum
+      - just checksum
     when:
       - event: tag
 
