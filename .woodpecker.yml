@@ -18,6 +18,7 @@ steps:
     image: *buildx_plugin
     settings:
       repo: ghcr.io/windsource/picus-devcontainer
+      dockerfile: .devcontainer/Dockerfile
       context: .devcontainer
       tags_file: .devcontainer/VERSION
       logins:
