@@ -136,8 +136,6 @@ impl Strategy {
 mod tests {
     use super::*;
     use crate::agent::MockAgentProvider;
-    #[cfg(feature = "json")]
-    use serde_json;
     use std::collections::HashMap;
     use tokio::time::sleep;
 
