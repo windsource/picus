@@ -1,5 +1,8 @@
 FROM ubuntu:24.04
 
+# Note: When you change anything in here, please also change the ./devcontainer/VERSION
+#       as Woodpecker will create a new container to be used in the CI build.
+
 ARG TARGETARCH
 ARG USERNAME=vscode
 ARG RUST_VERSION=1.83.0
