@@ -2,7 +2,7 @@ FROM ubuntu:24.04
 
 ARG TARGETARCH
 ARG USERNAME=vscode
-ARG RUST_VERSION=1.80.1
+ARG RUST_VERSION=1.83.0
 
 # All the packages we need
 RUN export DEBIAN_FRONTEND=noninteractive \
