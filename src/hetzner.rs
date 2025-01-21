@@ -23,8 +23,6 @@ static USER_DATA_TEMPLATE: &str = r#"#cloud-config
 write_files:
 - content: |
     # docker-compose.yml
-    version: '3'
-
     services:
 
       woodpecker-agent:

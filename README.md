@@ -30,7 +30,7 @@ services:
       - PICUS_WOODPECKER_AGENT_ID=1
       - PICUS_AGENT_WOODPECKER_SERVER=woodpecker.example.com:443
       - PICUS_AGENT_WOODPECKER_AGENT_SECRET=<...>
-      - PICUS_AGENT_WOODPECKER_FILTER_LABELS=platform=linux/amd64,backend=docker,repo=*
+      - PICUS_AGENT_WOODPECKER_FILTER_LABELS=platform=linux/amd64,backend=docker,repo=*,org-ci=*
       - PICUS_AGENT_WOODPECKER_BACKEND=docker
       - PICUS_PROVIDER_TYPE=hcloud
       - PICUS_HCLOUD_TOKEN=<...>

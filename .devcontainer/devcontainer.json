@@ -4,7 +4,6 @@
 		"dockerfile": "Dockerfile",
 	},
 	"runArgs": [
-		"--env-file", ".devcontainer/devcontainer.env"
 	],
 
 	// Configure tool-specific properties.
@@ -27,7 +26,6 @@
 				"mutantdino.resourcemonitor",
 				"rust-lang.rust-analyzer",
 				"tamasfe.even-better-toml",
-				"serayuzgur.crates",
 				"donjayamanne.githistory",
 				"nefrob.vscode-just-syntax"
 			]
