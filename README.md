@@ -153,3 +153,4 @@ To run all AWS tests with log level set to `trace` for Picus:
 ```console
 RUST_LOG="picus=trace" cargo test aws -- --ignored --nocapture
 ```
+
