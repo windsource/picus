@@ -32,7 +32,7 @@ Parameters:
   WoodpeckerFilterLabels:
     Description: Labels for agent to pick pipeline
     Type: String
-    Default: 'platform=linux/amd64,backend=docker,repo=*'
+    Default: 'platform=linux/amd64,backend=docker,repo=*,org-id=*'
 Mappings: 
   RegionMap: 
     eu-west-1:
