@@ -5,7 +5,7 @@ FROM ubuntu:24.04
 
 ARG TARGETARCH
 ARG USERNAME=vscode
-ARG RUST_VERSION=1.83.0
+ARG RUST_VERSION=1.85.0
 
 # All the packages we need
 RUN export DEBIAN_FRONTEND=noninteractive \
@@ -56,7 +56,7 @@ RUN mkdir -p -m 2777 $RUSTUP_HOME \
     && mkdir -p -m 2777 $CARGO_HOME \
     && chgrp rustlang $CARGO_HOME \
     && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
-       sh -s -- -y --default-toolchain ${RUST_VERSION} --target x86_64-unknown-linux-musl aarch64-unknown-linux-musl --no-modify-path \
+       sh -s -- -y --default-toolchain ${RUST_VERSION} --target x86_64-unknown-linux-musl --target aarch64-unknown-linux-musl --no-modify-path \
     && chmod -R ag+w $RUSTUP_HOME $CARGO_HOME
 
 # Install just
