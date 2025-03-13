@@ -1,5 +1,5 @@
 variables:
-  - &devcon 'ghcr.io/windsource/picus-devcontainer:1.0.1'
+  - &devcon 'ghcr.io/windsource/picus-devcontainer:1.1.0'
   - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:5.2.1'
 
 labels:
