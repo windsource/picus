@@ -27,7 +27,8 @@
 				"rust-lang.rust-analyzer",
 				"tamasfe.even-better-toml",
 				"donjayamanne.githistory",
-				"nefrob.vscode-just-syntax"
+				"nefrob.vscode-just-syntax",
+				"serayuzgur.crates"
 			]
 		}
 	},
