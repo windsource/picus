@@ -7,13 +7,18 @@ ARG TARGETARCH
 ARG USERNAME=vscode
 ARG RUST_VERSION=1.85.0
 
+# We need to override the sources.list to use both arm64 and amd64 packages
+COPY ubuntu.sources /etc/apt/sources.list.d/
+
 # All the packages we need
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt update && \
     if [ "$TARGETARCH" = "amd64" ]; then \
         apt install -y gcc-aarch64-linux-gnu; \
+        dpkg --add-architecture arm64; apt update; apt install -y musl-tools:arm64; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
         apt install -y gcc-x86-64-linux-gnu; \
+        dpkg --add-architecture amd64; apt update; apt install -y musl-tools:amd64; \
     fi \
     && apt -y install \
     # Basics

@@ -8,10 +8,23 @@ config := ".cargo/config.toml"
 target_amd64 := "x86_64-unknown-linux-musl"
 target_arm64 := "aarch64-unknown-linux-musl"
 
+# We need to use musl-gcc to build the binary
+# See https://github.com/aws/aws-lc-rs/issues/736
+cc_amd64 := "/usr/bin/x86_64-linux-musl-gcc"
+cc_arm64 := "/usr/bin/aarch64-linux-musl-gcc"
+
 default_target := if arch() == "x86_64" { 
     target_amd64
 } else if arch() == "aarch64" { 
     target_arm64
+} else {
+    error("Unknwon host architecture")
+}
+
+default_cc := if arch() == "x86_64" { 
+    cc_amd64
+} else if arch() == "aarch64" { 
+    cc_arm64
 } else {
     error("Unknwon host architecture")
 }
@@ -26,18 +39,18 @@ export CARGO_HOME := if `echo $CI` != "" {
 all: check-licenses test build-amd64 build-arm64 checksum
 
 test:
-    cargo test --target {{default_target}}
+    CC={{default_cc}} cargo test --target {{default_target}}
 
 # Debug build for host arch
 build:
-    cargo build --target {{default_target}}
+    CC={{default_cc}} cargo build --target {{default_target}}
 
 build-amd64: _dist
-    cargo build --release --target {{target_amd64}}
+    CC={{cc_amd64}} cargo build --release --target {{target_amd64}}
     cp target/{{target_amd64}}/release/picus dist/picus-linux-amd64
 
 build-arm64: _dist
-    cargo build --release --target {{target_arm64}}
+    CC={{cc_arm64}} cargo build --release --target {{target_arm64}}
     cp target/{{target_arm64}}/release/picus dist/picus-linux-arm64
 
 checksum: _dist
