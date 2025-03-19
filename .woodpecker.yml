@@ -1,5 +1,5 @@
 variables:
-  - &devcon 'ghcr.io/windsource/picus-devcontainer:1.1.0'
+  - &devcon 'ghcr.io/windsource/picus-devcontainer:1.1.1'
   - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:5.2.1'
 
 labels:
@@ -28,11 +28,15 @@ steps:
           password:
             from_secret: github_password
     when:
-      path:
-        - ".devcontainer/*"
-        - ".woodpecker.yml"
-      event: [push, manual]
-      branch: main  
+      - path:
+          - ".devcontainer/*"
+          - ".woodpecker.yml"
+        event: [push, manual]
+        branch: main  
+      - path:
+          - ".devcontainer/*"
+          - ".woodpecker.yml"
+        event: pull_request
 
     # The license check has to before the vendor command as otherweise 'cargo install' will not work
   - name: check-licenses
@@ -134,3 +138,4 @@ steps:
       title: ${CI_COMMIT_TAG##v}
     when:
       - event: tag
+      

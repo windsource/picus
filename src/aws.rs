@@ -31,7 +31,7 @@ pub struct AwsAgentProvider {
 
 impl AwsAgentProvider {
     pub async fn new(params: AwsAgentProviderParams) -> Result<AwsAgentProvider, Box<dyn Error>> {
-        let config = aws_config::defaults(BehaviorVersion::v2024_03_28())
+        let config = aws_config::defaults(BehaviorVersion::v2025_01_17())
             .load()
             .await;
         let client = Client::new(&config);
