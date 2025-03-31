@@ -20,5 +20,5 @@ aws-sdk-ec2 = "1"
 aws-config = "1"
 
 [dev-dependencies]
-mockall = "0.12"
+mockall = "0.13"
 test-log = "0.2.11"
