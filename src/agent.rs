@@ -5,6 +5,8 @@ use std::{collections::HashMap, error::Error};
 
 pub type Labels = HashMap<String, String>;
 
+const WOODPECKER_INTERNAL_LABEL_PREFIX: &str = "woodpecker-ci.org";
+
 #[cfg_attr(test, automock)]
 #[async_trait]
 pub trait AgentProvider {
@@ -27,7 +29,7 @@ impl FilterLabels {
     }
     pub fn supports(&self, workflow_labels: &Labels) -> bool {
         for (k, v) in workflow_labels.iter() {
-            if !v.is_empty() {
+            if !v.is_empty() && !k.starts_with(WOODPECKER_INTERNAL_LABEL_PREFIX) {
                 if let Some(filter_value) = self.0.get(k) {
                     if filter_value != v && filter_value != "*" {
                         return false;
@@ -79,6 +81,19 @@ mod tests {
     fn filter_labels_empty_workflow_value() {
         let fl = FilterLabels::from_string("type=*,platform=linux/amd64,backend=docker");
         let workflow_labels: Labels = HashMap::from([("platform".to_string(), "".to_string())]);
+        assert!(fl.supports(&workflow_labels));
+    }
+    #[test]
+    fn filter_labels_woodpecker_internal() {
+        let fl = FilterLabels::from_string("type=*,platform=linux/amd64,backend=docker");
+        let workflow_labels: Labels = HashMap::from([
+            ("platform".to_string(), "".to_string()),
+            ("woodpecker-ci.org/repo-id".to_string(), "3".to_string()),
+            (
+                "woodpecker-ci.org/repo-forge-id".to_string(),
+                "23949".to_string(),
+            ),
+        ]);
         assert!(fl.supports(&workflow_labels));
     }
 }
