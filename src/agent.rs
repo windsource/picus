@@ -83,6 +83,7 @@ mod tests {
         let workflow_labels: Labels = HashMap::from([("platform".to_string(), "".to_string())]);
         assert!(fl.supports(&workflow_labels));
     }
+
     #[test]
     fn filter_labels_woodpecker_internal() {
         let fl = FilterLabels::from_string("type=*,platform=linux/amd64,backend=docker");
