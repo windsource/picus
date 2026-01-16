@@ -60,7 +60,7 @@ _dist:
     mkdir -p dist
 
 check-licenses:
-    cargo install cargo-deny@0.18.2
+    cargo install cargo-deny@0.19.0
     cargo deny check licenses
 
 # Vendor sources and create source archive

@@ -5,7 +5,7 @@ FROM ubuntu:24.04
 
 ARG TARGETARCH
 ARG USERNAME=vscode
-ARG RUST_VERSION=1.85.0
+ARG RUST_VERSION=1.92.0
 
 # We need to override the sources.list to use both arm64 and amd64 packages
 COPY ubuntu.sources /etc/apt/sources.list.d/
