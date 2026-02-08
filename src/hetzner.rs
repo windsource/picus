@@ -187,7 +187,7 @@ impl HetznerAgentProvider {
     async fn create_server_from_scratch(&self) -> Result<(), String> {
         // start server
         let params = CreateServerParams {
-            create_server_request: Some(CreateServerRequest {
+            create_server_request: CreateServerRequest {
                 firewalls: None,
                 image: "docker-ce".to_string(),
                 labels: Some(self.labels.clone()),
@@ -198,7 +198,7 @@ impl HetznerAgentProvider {
                 start_after_create: Some(true),
                 user_data: Some(self.user_data.clone()),
                 ..Default::default()
-            }),
+            },
         };
 
         let result = servers_api::create_server(&self.config, params).await;
