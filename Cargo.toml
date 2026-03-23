@@ -1,12 +1,12 @@
 [package]
 name = "picus"
 description ="Dynamically creates agent for Woodpecker CI in the cloud"
-version = "0.8.2"
+version = "0.8.3"
 edition = "2021"
 license = "MIT"
 
 [dependencies]
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

@@ -1,13 +1,13 @@
 variables:
   - &devcon 'ghcr.io/windsource/picus-devcontainer:1.2.0'
-  - &buildx_plugin 'woodpeckerci/plugin-docker-buildx:5.2.1'
+  - &buildx_plugin 'woodpeckerci/plugin-docker-buildx@sha256:765ebfaa6f71383197babb2352c7902bafe141e6232a62cafb740510a788c550' # 6.0.4
 
 labels:
   platform: linux/amd64
 
 clone:
   git:
-    image: woodpeckerci/plugin-git:2.5.1
+    image: woodpeckerci/plugin-git@sha256:e6326a142d9bf08c6cc79cee3b3b26c87c15c999f89fb0b14c98d6031639968a # 2.8.1
     when:
       - event: pull_request
       - event: [push, tag, manual]
@@ -129,7 +129,7 @@ steps:
       branch: main
 
   - name: publish-release
-    image: woodpeckerci/plugin-release:0.1.0
+    image: woodpeckerci/plugin-release@sha256:48a9ce5e4b82bb45098f51296d6232e68d58204d1edd46cc793a1458481f0584 # 0.3.0
     settings:
       files:
         - 'dist/*'
